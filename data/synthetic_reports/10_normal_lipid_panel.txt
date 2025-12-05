@@ -1,0 +1,21 @@
+LABORATORY REPORT
+=================
+
+Patient ID: TEST010
+Date of Collection: 2025-09-17
+Test: Lipid Panel (Fasting)
+
+RESULTS:
+--------
+Total Cholesterol: 182 mg/dL (0-200)
+HDL Cholesterol: 58 mg/dL (>40)
+LDL Cholesterol: 98 mg/dL (0-100)
+Triglycerides: 130 mg/dL (0-150)
+VLDL Cholesterol: 26 mg/dL (5-40)
+
+IMPRESSION:
+Lipid profile within desirable ranges.
+Continue current lifestyle and dietary habits.
+
+Performing Lab: LabCorp
+Certified by: Dr. Wilson, MD

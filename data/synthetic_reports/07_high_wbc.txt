@@ -1,0 +1,21 @@
+LABORATORY REPORT
+=================
+
+Patient ID: TEST007
+Date of Collection: 2025-10-08
+Test: Complete Blood Count (CBC)
+
+RESULTS:
+--------
+White Blood Cell Count: 15.8 x10³/µL (4.0-11.0) [H]
+Red Blood Cell Count: 4.6 x10⁶/µL (4.5-5.5)
+Hemoglobin: 14.0 g/dL (13.0-17.0)
+Hematocrit: 41.0 % (38.0-50.0)
+Platelet Count: 280 x10³/µL (150-400)
+
+IMPRESSION:
+Elevated white blood cell count suggesting possible infection or inflammation.
+Recommend clinical correlation and follow-up.
+
+Performing Lab: Quest Diagnostics
+Certified by: Dr. Brown, MD

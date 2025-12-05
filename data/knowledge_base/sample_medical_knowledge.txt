@@ -1,0 +1,61 @@
+# Hemoglobin
+Hemoglobin is a protein in red blood cells that carries oxygen from the lungs to the body's tissues and returns carbon dioxide from the tissues back to the lungs. Hemoglobin is made up of four protein molecules (globulin chains) that are connected together.
+
+Normal hemoglobin values vary by age and sex. For adult men, normal ranges are typically 13.0-17.0 g/dL. For adult women, normal ranges are typically 12.0-15.5 g/dL.
+
+Low hemoglobin (anemia) can be caused by blood loss, decreased red blood cell production, or increased red blood cell destruction. Common causes include iron deficiency, vitamin B12 or folate deficiency, chronic kidney disease, bone marrow disorders, or chronic inflammatory diseases.
+
+High hemoglobin levels can be caused by living at high altitude, smoking, dehydration, lung disease, or polycythemia vera (a bone marrow disorder).
+
+Symptoms of low hemoglobin include fatigue, weakness, pale skin, shortness of breath, dizziness, and cold hands and feet. If you have abnormal hemoglobin levels, your doctor may recommend additional tests to determine the cause.
+
+# Potassium
+Potassium is an essential mineral and electrolyte that helps regulate fluid balance, muscle contractions, and nerve signals. Most of the body's potassium is found inside cells.
+
+Normal potassium levels range from 3.5 to 5.0 milliequivalents per liter (mEq/L). Values outside this range can be dangerous.
+
+Low potassium (hypokalemia) below 3.5 mEq/L can be caused by excessive sweating, vomiting, diarrhea, certain medications (like diuretics), or eating disorders. Symptoms include muscle weakness, cramping, fatigue, and irregular heartbeat.
+
+High potassium (hyperkalemia) above 5.0 mEq/L can be caused by kidney disease, certain medications, excessive potassium intake, or tissue damage. Very high levels (above 6.0 mEq/L) are a medical emergency.
+
+Critical hyperkalemia can cause dangerous heart rhythm problems (arrhythmias) and requires immediate medical attention. Treatment may include medications to shift potassium into cells, dialysis, or other interventions.
+
+# White Blood Cell Count (WBC)
+White blood cells (leukocytes) are part of the immune system and help fight infections and other diseases. There are several types of white blood cells, including neutrophils, lymphocytes, monocytes, eosinophils, and basophils.
+
+Normal WBC count is typically 4,000 to 11,000 cells per microliter (4.0-11.0 x10³/µL).
+
+High WBC count (leukocytosis) can indicate infection, inflammation, leukemia, allergic reactions, or stress. Very high counts require further investigation.
+
+Low WBC count (leukopenia) can be caused by bone marrow disorders, autoimmune conditions, severe infections, or certain medications. People with low WBC are at increased risk of infections.
+
+# Glucose
+Glucose is the main type of sugar in the blood and is the primary source of energy for the body's cells. The body regulates blood glucose levels through insulin and other hormones.
+
+Normal fasting glucose levels are 70-100 mg/dL. Levels of 100-125 mg/dL indicate prediabetes. Levels of 126 mg/dL or higher on two separate tests indicate diabetes.
+
+Low blood glucose (hypoglycemia) below 70 mg/dL can cause shakiness, sweating, confusion, and if severe, loss of consciousness. It requires immediate treatment with fast-acting carbohydrates.
+
+High blood glucose (hyperglycemia) can be caused by diabetes, stress, certain medications, or illness. Chronic high glucose levels can damage blood vessels, nerves, kidneys, and eyes.
+
+Very high glucose levels (above 400 mg/dL) can lead to diabetic ketoacidosis or hyperosmolar hyperglycemic state, both medical emergencies.
+
+# Creatinine
+Creatinine is a waste product from the normal breakdown of muscle tissue. It is filtered out of the blood by the kidneys and excreted in urine. Creatinine levels in the blood can indicate how well the kidneys are functioning.
+
+Normal creatinine levels are typically 0.6-1.2 mg/dL for adults, though values can vary based on age, sex, and muscle mass.
+
+High creatinine levels indicate reduced kidney function. Causes include chronic kidney disease, acute kidney injury, dehydration, or certain medications. Very high levels may require dialysis.
+
+The estimated glomerular filtration rate (eGFR) is calculated from creatinine levels and provides a better measure of kidney function. Normal eGFR is above 60 mL/min/1.73m².
+
+# Platelet Count
+Platelets (thrombocytes) are blood cells that help with clotting and stop bleeding. They are produced in the bone marrow.
+
+Normal platelet count is 150,000 to 400,000 per microliter (150-400 x10³/µL).
+
+Low platelet count (thrombocytopenia) below 150,000 can cause easy bruising, prolonged bleeding, and petechiae (small red spots on skin). Severe thrombocytopenia (below 50,000) increases bleeding risk significantly.
+
+High platelet count (thrombocytosis) above 400,000 can increase the risk of blood clots. It may be reactive (due to infection, inflammation, or iron deficiency) or primary (due to bone marrow disorder).
+
+Critical thrombocytopenia (below 20,000) is a medical emergency and may require platelet transfusion.

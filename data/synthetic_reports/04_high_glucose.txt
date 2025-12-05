@@ -1,0 +1,29 @@
+LABORATORY REPORT
+=================
+
+Patient ID: TEST004
+Date of Collection: 2025-09-26
+Test: Comprehensive Metabolic Panel
+
+RESULTS:
+--------
+Glucose: 185 mg/dL (70-100) [H]
+Sodium: 140 mEq/L (135-145)
+Potassium: 4.2 mEq/L (3.5-5.0)
+Chloride: 101 mEq/L (98-107)
+CO2: 25 mEq/L (22-30)
+BUN: 16 mg/dL (7-20)
+Creatinine: 0.9 mg/dL (0.6-1.2)
+Calcium: 9.5 mg/dL (8.5-10.5)
+Total Protein: 7.2 g/dL (6.0-8.3)
+Albumin: 4.1 g/dL (3.5-5.0)
+Total Bilirubin: 0.8 mg/dL (0.1-1.2)
+ALT: 28 U/L (7-56)
+AST: 24 U/L (10-40)
+
+IMPRESSION:
+Elevated fasting glucose suggestive of impaired glucose tolerance.
+Recommend HbA1c testing and endocrinology consultation.
+
+Performing Lab: Quest Diagnostics
+Certified by: Dr. Lee, MD

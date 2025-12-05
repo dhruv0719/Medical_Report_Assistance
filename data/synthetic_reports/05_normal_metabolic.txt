@@ -1,0 +1,23 @@
+LABORATORY REPORT
+=================
+
+Patient ID: TEST005
+Date of Collection: 2025-09-29
+Test: Basic Metabolic Panel
+
+RESULTS:
+--------
+Glucose: 88 mg/dL (70-100)
+Sodium: 139 mEq/L (135-145)
+Potassium: 4.0 mEq/L (3.5-5.0)
+Chloride: 103 mEq/L (98-107)
+CO2: 26 mEq/L (22-30)
+BUN: 14 mg/dL (7-20)
+Creatinine: 0.9 mg/dL (0.6-1.2)
+Calcium: 9.2 mg/dL (8.5-10.5)
+
+IMPRESSION:
+All values within normal limits.
+
+Performing Lab: LabCorp
+Certified by: Dr. Williams, MD

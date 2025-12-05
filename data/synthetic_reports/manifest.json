@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "patient_id": "TEST001",
+    "type": "normal_cbc",
+    "filename": "01_normal_cbc.txt",
+    "filepath": "D:\\Medical_Assitance\\data\\synthetic_reports\\01_normal_cbc.txt"
+  },
+  {
+    "id": 2,
+    "patient_id": "TEST002",
+    "type": "mild_anemia",
+    "filename": "02_mild_anemia.txt",
+    "filepath": "D:\\Medical_Assitance\\data\\synthetic_reports\\02_mild_anemia.txt"
+  },
+  {
+    "id": 3,
+    "patient_id": "TEST003",
+    "type": "critical_potassium",
+    "filename": "03_critical_potassium.txt",
+    "filepath": "D:\\Medical_Assitance\\data\\synthetic_reports\\03_critical_potassium.txt"
+  },
+  {
+    "id": 4,
+    "patient_id": "TEST004",
+    "type": "high_glucose",
+    "filename": "04_high_glucose.txt",
+    "filepath": "D:\\Medical_Assitance\\data\\synthetic_reports\\04_high_glucose.txt"
+  },
+  {
+    "id": 5,
+    "patient_id": "TEST005",
+    "type": "normal_metabolic",
+    "filename": "05_normal_metabolic.txt",
+    "filepath": "D:\\Medical_Assitance\\data\\synthetic_reports\\05_normal_metabolic.txt"
+  },
+  {
+    "id": 6,
+    "patient_id": "TEST006",
+    "type": "critical_low_glucose",
+    "filename": "06_critical_low_glucose.txt",
+    "filepath": "D:\\Medical_Assitance\\data\\synthetic_reports\\06_critical_low_glucose.txt"
+  },
+  {
+    "id": 7,
+    "patient_id": "TEST007",
+    "type": "high_wbc",
+    "filename": "07_high_wbc.txt",
+    "filepath": "D:\\Medical_Assitance\\data\\synthetic_reports\\07_high_wbc.txt"
+  },
+  {
+    "id": 8,
+    "patient_id": "TEST008",
+    "type": "low_platelet",
+    "filename": "08_low_platelet.txt",
+    "filepath": "D:\\Medical_Assitance\\data\\synthetic_reports\\08_low_platelet.txt"
+  },
+  {
+    "id": 9,
+    "patient_id": "TEST009",
+    "type": "elevated_liver_enzymes",
+    "filename": "09_elevated_liver_enzymes.txt",
+    "filepath": "D:\\Medical_Assitance\\data\\synthetic_reports\\09_elevated_liver_enzymes.txt"
+  },
+  {
+    "id": 10,
+    "patient_id": "TEST010",
+    "type": "normal_lipid_panel",
+    "filename": "10_normal_lipid_panel.txt",
+    "filepath": "D:\\Medical_Assitance\\data\\synthetic_reports\\10_normal_lipid_panel.txt"
+  }
+]

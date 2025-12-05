@@ -1,0 +1,22 @@
+LABORATORY REPORT
+=================
+
+Patient ID: TEST009
+Date of Collection: 2025-10-01
+Test: Liver Function Tests
+
+RESULTS:
+--------
+ALT: 125 U/L (7-56) [H]
+AST: 98 U/L (10-40) [H]
+Alkaline Phosphatase: 145 U/L (44-147)
+Total Bilirubin: 1.1 mg/dL (0.1-1.2)
+Albumin: 4.0 g/dL (3.5-5.0)
+Total Protein: 7.0 g/dL (6.0-8.3)
+
+IMPRESSION:
+Elevated liver transaminases (ALT and AST).
+Recommend hepatology consultation and further workup to determine etiology.
+
+Performing Lab: Quest Diagnostics
+Certified by: Dr. Garcia, MD

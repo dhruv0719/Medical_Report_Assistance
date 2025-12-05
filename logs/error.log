@@ -1,0 +1,245 @@
+2025-10-10 09:42:23 | ERROR    | backend.parser.medical_parser:_extract_tests:136 | Exception while parsing test match: <re.Match object; span=(56, 81), match='\nDate of Collection: 2025'>
+Traceback (most recent call last):
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 191, in <module>
+    success &= test_parser()
+    │          └ <function test_parser at 0x000001F3DE4DE200>
+    └ True
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 60, in test_parser
+    report = parser.parse(text)
+             │      │     └ 'LABORATORY REPORT\r\n=================\r\n\r\nPatient ID: TEST002\r\nDate of Collection: 2025-10-08\r\nTest: Complete Blood ...
+             │      └ <function MedicalReportParser.parse at 0x000001F3EDB52160>
+             └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 51, in parse
+    tests = self._extract_tests(normalized_text)
+            │    │              └ 'LABORATORY REPORT\n=================\n\nPatient ID: TEST002\nDate of Collection: 2025-10-08\nTest: Complete Blood Count (CBC...
+            │    └ <function MedicalReportParser._extract_tests at 0x000001F3EDB528E0>
+            └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+> File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 133, in _extract_tests
+    test = self._parse_test_match(match_obj)
+           │    │                 └ <re.Match object; span=(56, 81), match='\nDate of Collection: 2025'>
+           │    └ <function MedicalReportParser._parse_test_match at 0x000001F3EDB52980>
+           └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 173, in _parse_test_match
+    reference_range = groups[3].strip()
+                      └ ('\nDate of Collection', '202', '5', None)
+
+AttributeError: 'NoneType' object has no attribute 'strip'
+2025-10-10 09:42:23 | ERROR    | backend.parser.medical_parser:_extract_tests:136 | Exception while parsing test match: <re.Match object; span=(139, 169), match='\nWhite Blood Cell Count: 6.8 x'>
+Traceback (most recent call last):
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 191, in <module>
+    success &= test_parser()
+    │          └ <function test_parser at 0x000001F3DE4DE200>
+    └ True
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 60, in test_parser
+    report = parser.parse(text)
+             │      │     └ 'LABORATORY REPORT\r\n=================\r\n\r\nPatient ID: TEST002\r\nDate of Collection: 2025-10-08\r\nTest: Complete Blood ...
+             │      └ <function MedicalReportParser.parse at 0x000001F3EDB52160>
+             └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 51, in parse
+    tests = self._extract_tests(normalized_text)
+            │    │              └ 'LABORATORY REPORT\n=================\n\nPatient ID: TEST002\nDate of Collection: 2025-10-08\nTest: Complete Blood Count (CBC...
+            │    └ <function MedicalReportParser._extract_tests at 0x000001F3EDB528E0>
+            └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+> File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 133, in _extract_tests
+    test = self._parse_test_match(match_obj)
+           │    │                 └ <re.Match object; span=(139, 169), match='\nWhite Blood Cell Count: 6.8 x'>
+           │    └ <function MedicalReportParser._parse_test_match at 0x000001F3EDB52980>
+           └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 173, in _parse_test_match
+    reference_range = groups[3].strip()
+                      └ ('\nWhite Blood Cell Count', '6.8', 'x', None)
+
+AttributeError: 'NoneType' object has no attribute 'strip'
+2025-10-10 09:42:23 | ERROR    | backend.parser.medical_parser:_extract_tests:136 | Exception while parsing test match: <re.Match object; span=(186, 214), match='\nRed Blood Cell Count: 3.9 x'>
+Traceback (most recent call last):
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 191, in <module>
+    success &= test_parser()
+    │          └ <function test_parser at 0x000001F3DE4DE200>
+    └ True
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 60, in test_parser
+    report = parser.parse(text)
+             │      │     └ 'LABORATORY REPORT\r\n=================\r\n\r\nPatient ID: TEST002\r\nDate of Collection: 2025-10-08\r\nTest: Complete Blood ...
+             │      └ <function MedicalReportParser.parse at 0x000001F3EDB52160>
+             └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 51, in parse
+    tests = self._extract_tests(normalized_text)
+            │    │              └ 'LABORATORY REPORT\n=================\n\nPatient ID: TEST002\nDate of Collection: 2025-10-08\nTest: Complete Blood Count (CBC...
+            │    └ <function MedicalReportParser._extract_tests at 0x000001F3EDB528E0>
+            └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+> File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 133, in _extract_tests
+    test = self._parse_test_match(match_obj)
+           │    │                 └ <re.Match object; span=(186, 214), match='\nRed Blood Cell Count: 3.9 x'>
+           │    └ <function MedicalReportParser._parse_test_match at 0x000001F3EDB52980>
+           └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 173, in _parse_test_match
+    reference_range = groups[3].strip()
+                      └ ('\nRed Blood Cell Count', '3.9', 'x', None)
+
+AttributeError: 'NoneType' object has no attribute 'strip'
+2025-10-10 09:42:23 | ERROR    | backend.parser.medical_parser:_extract_tests:136 | Exception while parsing test match: <re.Match object; span=(234, 253), match='\nHemoglobin: 11.2 g'>
+Traceback (most recent call last):
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 191, in <module>
+    success &= test_parser()
+    │          └ <function test_parser at 0x000001F3DE4DE200>
+    └ True
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 60, in test_parser
+    report = parser.parse(text)
+             │      │     └ 'LABORATORY REPORT\r\n=================\r\n\r\nPatient ID: TEST002\r\nDate of Collection: 2025-10-08\r\nTest: Complete Blood ...
+             │      └ <function MedicalReportParser.parse at 0x000001F3EDB52160>
+             └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 51, in parse
+    tests = self._extract_tests(normalized_text)
+            │    │              └ 'LABORATORY REPORT\n=================\n\nPatient ID: TEST002\nDate of Collection: 2025-10-08\nTest: Complete Blood Count (CBC...
+            │    └ <function MedicalReportParser._extract_tests at 0x000001F3EDB528E0>
+            └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+> File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 133, in _extract_tests
+    test = self._parse_test_match(match_obj)
+           │    │                 └ <re.Match object; span=(234, 253), match='\nHemoglobin: 11.2 g'>
+           │    └ <function MedicalReportParser._parse_test_match at 0x000001F3EDB52980>
+           └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 173, in _parse_test_match
+    reference_range = groups[3].strip()
+                      └ ('\nHemoglobin', '11.2', 'g', None)
+
+AttributeError: 'NoneType' object has no attribute 'strip'
+2025-10-10 09:42:23 | ERROR    | backend.parser.medical_parser:_extract_tests:136 | Exception while parsing test match: <re.Match object; span=(272, 292), match='\nHematocrit: 35.0 % '>
+Traceback (most recent call last):
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 191, in <module>
+    success &= test_parser()
+    │          └ <function test_parser at 0x000001F3DE4DE200>
+    └ True
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 60, in test_parser
+    report = parser.parse(text)
+             │      │     └ 'LABORATORY REPORT\r\n=================\r\n\r\nPatient ID: TEST002\r\nDate of Collection: 2025-10-08\r\nTest: Complete Blood ...
+             │      └ <function MedicalReportParser.parse at 0x000001F3EDB52160>
+             └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 51, in parse
+    tests = self._extract_tests(normalized_text)
+            │    │              └ 'LABORATORY REPORT\n=================\n\nPatient ID: TEST002\nDate of Collection: 2025-10-08\nTest: Complete Blood Count (CBC...
+            │    └ <function MedicalReportParser._extract_tests at 0x000001F3EDB528E0>
+            └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+> File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 133, in _extract_tests
+    test = self._parse_test_match(match_obj)
+           │    │                 └ <re.Match object; span=(272, 292), match='\nHematocrit: 35.0 % '>
+           │    └ <function MedicalReportParser._parse_test_match at 0x000001F3EDB52980>
+           └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 173, in _parse_test_match
+    reference_range = groups[3].strip()
+                      └ ('\nHematocrit', '35.0', '%', None)
+
+AttributeError: 'NoneType' object has no attribute 'strip'
+2025-10-10 09:42:23 | ERROR    | backend.parser.medical_parser:_extract_tests:136 | Exception while parsing test match: <re.Match object; span=(307, 329), match='\nPlatelet Count: 230 x'>
+Traceback (most recent call last):
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 191, in <module>
+    success &= test_parser()
+    │          └ <function test_parser at 0x000001F3DE4DE200>
+    └ True
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 60, in test_parser
+    report = parser.parse(text)
+             │      │     └ 'LABORATORY REPORT\r\n=================\r\n\r\nPatient ID: TEST002\r\nDate of Collection: 2025-10-08\r\nTest: Complete Blood ...
+             │      └ <function MedicalReportParser.parse at 0x000001F3EDB52160>
+             └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 51, in parse
+    tests = self._extract_tests(normalized_text)
+            │    │              └ 'LABORATORY REPORT\n=================\n\nPatient ID: TEST002\nDate of Collection: 2025-10-08\nTest: Complete Blood Count (CBC...
+            │    └ <function MedicalReportParser._extract_tests at 0x000001F3EDB528E0>
+            └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+> File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 133, in _extract_tests
+    test = self._parse_test_match(match_obj)
+           │    │                 └ <re.Match object; span=(307, 329), match='\nPlatelet Count: 230 x'>
+           │    └ <function MedicalReportParser._parse_test_match at 0x000001F3EDB52980>
+           └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 173, in _parse_test_match
+    reference_range = groups[3].strip()
+                      └ ('\nPlatelet Count', '230', 'x', None)
+
+AttributeError: 'NoneType' object has no attribute 'strip'
+2025-10-10 09:42:23 | ERROR    | backend.parser.medical_parser:_extract_tests:136 | Exception while parsing test match: <re.Match object; span=(345, 375), match='\nMean Corpuscular Volume: 85 f'>
+Traceback (most recent call last):
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 191, in <module>
+    success &= test_parser()
+    │          └ <function test_parser at 0x000001F3DE4DE200>
+    └ True
+
+  File "D:\Medical_Assitance\tests\test_phase2.py", line 60, in test_parser
+    report = parser.parse(text)
+             │      │     └ 'LABORATORY REPORT\r\n=================\r\n\r\nPatient ID: TEST002\r\nDate of Collection: 2025-10-08\r\nTest: Complete Blood ...
+             │      └ <function MedicalReportParser.parse at 0x000001F3EDB52160>
+             └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 51, in parse
+    tests = self._extract_tests(normalized_text)
+            │    │              └ 'LABORATORY REPORT\n=================\n\nPatient ID: TEST002\nDate of Collection: 2025-10-08\nTest: Complete Blood Count (CBC...
+            │    └ <function MedicalReportParser._extract_tests at 0x000001F3EDB528E0>
+            └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+> File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 133, in _extract_tests
+    test = self._parse_test_match(match_obj)
+           │    │                 └ <re.Match object; span=(345, 375), match='\nMean Corpuscular Volume: 85 f'>
+           │    └ <function MedicalReportParser._parse_test_match at 0x000001F3EDB52980>
+           └ <backend.parser.medical_parser.MedicalReportParser object at 0x000001F3EDAC5C40>
+
+  File "D:\Medical_Assitance\backend\parser\medical_parser.py", line 173, in _parse_test_match
+    reference_range = groups[3].strip()
+                      └ ('\nMean Corpuscular Volume', '85', 'f', None)
+
+AttributeError: 'NoneType' object has no attribute 'strip'
+2025-10-10 10:22:55 | ERROR    | backend.audit.audit_logger:log_event:61 | Failed to create audit log: (sqlite3.OperationalError) no such table: audit_logs
+[SQL: INSERT INTO audit_logs (created_at, metadata, event_type, session_id, user_id, input_data, output_data, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('2025-10-10 04:52:55.622582', 'null', 'upload', '5b7580e5-a44f-4a81-a239-653cf529a757', None, '{"filename": "test.pdf", "file_hash": "abc123", "file_size": 1024}', 'null', None)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-10-10 10:22:55 | ERROR    | backend.audit.audit_logger:log_event:61 | Failed to create audit log: (sqlite3.OperationalError) no such table: audit_logs
+[SQL: INSERT INTO audit_logs (created_at, metadata, event_type, session_id, user_id, input_data, output_data, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('2025-10-10 04:52:55.649711', 'null', 'parse', '5b7580e5-a44f-4a81-a239-653cf529a757', None, 'null', '{"test_count": 10, "abnormal_count": 2}', None)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-10-10 10:22:55 | ERROR    | backend.audit.audit_logger:log_event:61 | Failed to create audit log: (sqlite3.OperationalError) no such table: audit_logs
+[SQL: INSERT INTO audit_logs (created_at, metadata, event_type, session_id, user_id, input_data, output_data, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('2025-10-10 04:52:55.649711', 'null', 'alert', '5b7580e5-a44f-4a81-a239-653cf529a757', None, 'null', '{"level": "HIGH", "test_name": "Glucose", "value": "185"}', None)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-10-10 11:08:09 | ERROR    | backend.audit.audit_logger:log_event:61 | Failed to create audit log: (sqlite3.OperationalError) no such table: audit_logs
+[SQL: INSERT INTO audit_logs (created_at, metadata, event_type, session_id, user_id, input_data, output_data, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('2025-10-10 05:38:09.474969', 'null', 'upload', 'f16b0ab8-08d6-4ff3-a0d6-fbaaa4f1dc56', None, '{"filename": "test.pdf", "file_hash": "abc123", "file_size": 1024}', 'null', None)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-10-10 11:08:09 | ERROR    | backend.audit.audit_logger:log_event:61 | Failed to create audit log: (sqlite3.OperationalError) no such table: audit_logs
+[SQL: INSERT INTO audit_logs (created_at, metadata, event_type, session_id, user_id, input_data, output_data, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('2025-10-10 05:38:09.490247', 'null', 'parse', 'f16b0ab8-08d6-4ff3-a0d6-fbaaa4f1dc56', None, 'null', '{"test_count": 10, "abnormal_count": 2}', None)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-10-10 11:08:09 | ERROR    | backend.audit.audit_logger:log_event:61 | Failed to create audit log: (sqlite3.OperationalError) no such table: audit_logs
+[SQL: INSERT INTO audit_logs (created_at, metadata, event_type, session_id, user_id, input_data, output_data, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('2025-10-10 05:38:09.494113', 'null', 'alert', 'f16b0ab8-08d6-4ff3-a0d6-fbaaa4f1dc56', None, 'null', '{"level": "HIGH", "test_name": "Glucose", "value": "185"}', None)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-10-11 21:23:11 | ERROR    | backend.orchestrator.pipeline:process_file:221 | Pipeline error: 'tuple' object has no attribute 'metadata'
+2025-10-12 22:24:44 | ERROR    | backend.ingestion.ocr_handler:extract_from_images:92 | OCR extraction failed: Unable to get page count. Is poppler installed and in PATH?
+2025-10-12 22:24:44 | ERROR    | backend.ingestion.document_processor:_process_pdf_file:133 | OCR extraction also failed: Unable to get page count. Is poppler installed and in PATH?
+2025-10-12 22:24:44 | ERROR    | backend.orchestrator.pipeline:process_file:222 | Pipeline error: Could not extract text from PDF: Unable to get page count. Is poppler installed and in PATH?

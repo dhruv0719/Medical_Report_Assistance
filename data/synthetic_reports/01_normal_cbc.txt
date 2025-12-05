@@ -1,0 +1,21 @@
+LABORATORY REPORT
+=================
+
+Patient ID: TEST001
+Date of Collection: 2025-09-17
+Test: Complete Blood Count (CBC)
+
+RESULTS:
+--------
+White Blood Cell Count: 7.2 x10³/µL (4.0-11.0)
+Red Blood Cell Count: 4.8 x10⁶/µL (4.5-5.5)
+Hemoglobin: 14.5 g/dL (13.0-17.0)
+Hematocrit: 42.0 % (38.0-50.0)
+Platelet Count: 250 x10³/µL (150-400)
+Mean Corpuscular Volume: 88 fL (80-100)
+
+IMPRESSION:
+All values within normal limits. No abnormalities detected.
+
+Performing Lab: Quest Diagnostics
+Certified by: Dr. Smith, MD

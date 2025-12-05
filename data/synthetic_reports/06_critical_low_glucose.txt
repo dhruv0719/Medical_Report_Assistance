@@ -1,0 +1,20 @@
+LABORATORY REPORT - CRITICAL VALUES
+====================================
+
+Patient ID: TEST006
+Date of Collection: 2025-10-10
+Test: Blood Glucose
+
+**CRITICAL RESULTS - PHYSICIAN NOTIFIED**
+
+RESULTS:
+--------
+Glucose: 38 mg/dL (70-100) [CRITICAL LOW]
+
+IMPRESSION:
+CRITICAL: Severe hypoglycemia detected.
+Patient requires immediate medical attention.
+Physician notified at 2025-10-10 09:23.
+
+Performing Lab: Hospital Laboratory
+Certified by: Dr. Chen, MD

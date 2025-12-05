@@ -1,0 +1,22 @@
+LABORATORY REPORT
+=================
+
+Patient ID: TEST002
+Date of Collection: 2025-10-08
+Test: Complete Blood Count (CBC)
+
+RESULTS:
+--------
+White Blood Cell Count: 6.8 x10³/µL (4.0-11.0)
+Red Blood Cell Count: 3.9 x10⁶/µL (4.5-5.5) [L]
+Hemoglobin: 11.2 g/dL (13.0-17.0) [L]
+Hematocrit: 35.0 % (38.0-50.0) [L]
+Platelet Count: 230 x10³/µL (150-400)
+Mean Corpuscular Volume: 85 fL (80-100)
+
+IMPRESSION:
+Mild anemia noted. Hemoglobin and hematocrit below normal range.
+Recommend iron studies and follow-up with primary care physician.
+
+Performing Lab: LabCorp
+Certified by: Dr. Johnson, MD
