@@ -243,3 +243,5 @@ AttributeError: 'NoneType' object has no attribute 'strip'
 2025-10-12 22:24:44 | ERROR    | backend.ingestion.ocr_handler:extract_from_images:92 | OCR extraction failed: Unable to get page count. Is poppler installed and in PATH?
 2025-10-12 22:24:44 | ERROR    | backend.ingestion.document_processor:_process_pdf_file:133 | OCR extraction also failed: Unable to get page count. Is poppler installed and in PATH?
 2025-10-12 22:24:44 | ERROR    | backend.orchestrator.pipeline:process_file:222 | Pipeline error: Could not extract text from PDF: Unable to get page count. Is poppler installed and in PATH?
+2026-01-23 16:43:39 | ERROR    | backend.parser.llm_parser:parse:83 | LLM parsing failed: Extra data: line 9 column 1 (char 121)
+2026-01-23 16:43:39 | ERROR    | backend.parser.medical_parser:parse:81 | LLM parser also failed. Returning partial data from regex.

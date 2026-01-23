@@ -88,14 +88,26 @@ async def login(
 
 # Auth routes (logout only, as we have a custom login)
 router.include_router(
-    fastapi_users.get_logout_router(auth_backend),
-    prefix="/auth/jwt",
+    fastapi_users.get_auth_router(auth_backend),
+    prefix="/auth",
     tags=["auth"],
 )
 
 # Register routes
 router.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["auth"],
+)
+
+# Forgot password and verification routes
+router.include_router(
+    fastapi_users.get_reset_password_router(),
+    prefix="/auth",
+    tags=["auth"],
+)
+router.include_router(
+    fastapi_users.get_verify_router(UserRead),
     prefix="/auth",
     tags=["auth"],
 )
