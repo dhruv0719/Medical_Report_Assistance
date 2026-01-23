@@ -1,17 +1,18 @@
 # backend/api/main.py
-from fastapi import FastAPI, logger
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.routes import analysis, users, health
 from backend.audit.database import init_db as init_audit_db
 from backend.api.auth.models import Base as UserBase
 from backend.api.auth.database import engine as user_engine
 from config.settings import APIConfig
-from config.logging_config import setup_logging
+from config.logging_config import setup_logging, get_logger 
 from scripts.setup_knowledge_base import setup_knowledge_base
 from backend.rag.knowledge_base import KnowledgeBase
 
 # Setup logging on startup
 setup_logging()
+logger = get_logger(__name__)
 
 app = FastAPI(
     title=APIConfig.TITLE,
@@ -48,12 +49,15 @@ async def on_startup():
     init_audit_db()
 
     # Check/Build Knowledge Base (Since Render disk is ephemeral)
-    kb = KnowledgeBase()
-    if kb.get_count() == 0:
-        logger.info("🧠 Knowledge base empty (new deployment). Ingesting data...")
-        setup_knowledge_base(reset=True)
-    else:
-        logger.info(f"🧠 Knowledge base loaded: {kb.get_count()} docs")
+    try:
+        kb = KnowledgeBase()
+        if kb.get_count() == 0:
+            logger.info("🧠 Knowledge base empty (new deployment). Ingesting data...")
+            setup_knowledge_base(reset=True)
+        else:
+            logger.info(f"🧠 Knowledge base loaded: {kb.get_count()} docs")
+    except Exception as e:
+        logger.error(f"❌ Error setting up knowledge base: {e}")
 
 @app.get("/", include_in_schema=False)
 def root():
