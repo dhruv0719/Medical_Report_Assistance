@@ -16,11 +16,18 @@ logger = get_logger(__name__)
 # Create SQLAlchemy base
 Base = declarative_base()
 
+# 1. Get URL
+database_url = settings.DATABASE_URL
+
+# 2. Fix URL for synchronous psycopg2 (standard SQLAlchemy)
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
 # Create engine
 engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},
-    echo=False  # Set to True for SQL debugging
+    database_url,
+    connect_args={"check_same_thread": False} if "sqlite" in database_url else {},
+    echo=False  
 )
 
 # Create session factory
@@ -28,7 +35,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
     """Initialize database (create tables)"""
-    from backend.audit.models import AuditLog  # Import here to avoid circular imports
+    from backend.audit import models  # Import here to avoid circular imports
     Base.metadata.create_all(bind=engine)
     logger.info("✅ Database initialized")
 

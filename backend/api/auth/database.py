@@ -13,16 +13,14 @@ from config.settings import settings
 database_url = settings.DATABASE_URL
 
 # 2. Fix the URL for asyncpg
-# If it starts with "postgresql://" or "postgres://", replace it with "postgresql+asyncpg://"
-if database_url.startswith("postgresql://"):
-    database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-elif database_url.startswith("postgres://"):
+if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
-# Handle SQLite fallback for local dev
+elif database_url.startswith("postgresql://"):
+    database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 elif database_url.startswith("sqlite:///"):
     database_url = database_url.replace("sqlite:///", "sqlite+aiosqlite:///")
 
-# 3. Create the engine with the fixed URL
+# 3. Create the engine 
 engine = create_async_engine(database_url)
 async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
