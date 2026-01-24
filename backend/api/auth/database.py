@@ -20,6 +20,16 @@ elif database_url.startswith("postgresql://"):
 elif database_url.startswith("sqlite:///"):
     database_url = database_url.replace("sqlite:///", "sqlite+aiosqlite:///")
 
+# Remove sslmode query param if present, as asyncpg handles it differently
+if "?" in database_url:
+    base_url, query = database_url.split("?", 1)
+    # Remove sslmode param but keep others if they exist
+    params = [p for p in query.split("&") if not p.startswith("sslmode=")]
+    if params:
+        database_url = f"{base_url}?{'&'.join(params)}"
+    else:
+        database_url = base_url
+
 # 3. Create the engine 
 engine = create_async_engine(database_url)
 async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
