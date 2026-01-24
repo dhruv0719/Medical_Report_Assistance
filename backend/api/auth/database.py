@@ -23,10 +23,17 @@ elif database_url.startswith("sqlite:///"):
 # Remove sslmode query param if present, as asyncpg handles it differently
 if "?" in database_url:
     base_url, query = database_url.split("?", 1)
-    # Remove sslmode param but keep others if they exist
-    params = [p for p in query.split("&") if not p.startswith("sslmode=")]
-    if params:
-        database_url = f"{base_url}?{'&'.join(params)}"
+    params = query.split("&")
+
+    # Filter out problematic params
+    allowed_params = []
+    for p in params:
+        key = p.split("=")[0]
+        if key not in ["sslmode", "channel_binding"]:
+            allowed_params.append(p)
+            
+    if allowed_params:
+        database_url = f"{base_url}?{'&'.join(allowed_params)}"
     else:
         database_url = base_url
 
