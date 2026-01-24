@@ -213,11 +213,18 @@ class APIConfig:
     VERSION = "0.1.0"
     
     # CORS
-    CORS_ORIGINS = [
-        "http://localhost:3000",
-        "http://localhost:8501",  # Streamlit default
-        "http://localhost:8000",
-    ]
+    # Read from environment variable, default to localhost list if not found
+    _cors_env = os.getenv("CORS_ORIGINS")
+    if _cors_env:
+        # Split by comma if multiple origins provided
+        CORS_ORIGINS = [origin.strip() for origin in _cors_env.split(",")]
+    else:
+        # Fallback for local development
+        CORS_ORIGINS = [
+            "http://localhost:3000",
+            "http://localhost:8501",
+            "http://localhost:8000",
+        ]
     
     # Rate limiting
     RATE_LIMIT_REQUESTS = 100
