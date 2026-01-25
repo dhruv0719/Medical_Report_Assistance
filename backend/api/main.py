@@ -42,8 +42,14 @@ async def on_startup():
     logger.info("🚀 Starting up...")
 
     # Create user database tables
-    async with user_engine.begin() as conn:
-        await conn.run_sync(UserBase.metadata.create_all)
+    try:
+        logger.info("🛠️ DEBUG: Testing User DB Connection...")
+        async with user_engine.begin() as conn:
+            await conn.run_sync(UserBase.metadata.create_all)
+        logger.info("✅ DEBUG: User DB Connected Successfully!")
+
+    except Exception as e:
+        logger.error(f"❌ DEBUG: User DB Connection Failed: {e}")
     
     # Create audit log database tables
     init_audit_db()

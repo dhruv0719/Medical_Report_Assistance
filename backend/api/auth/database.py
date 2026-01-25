@@ -8,6 +8,11 @@ from sqlalchemy.orm import sessionmaker
 
 from backend.api.auth.models import User, Base
 from config.settings import settings
+from config.logging_config import get_logger
+
+logger = get_logger(__name__)
+
+logger.info("🛠️ DEBUG: Configuring Database...") 
 
 # 1. Get the URL from settings
 database_url = settings.DATABASE_URL
@@ -36,9 +41,12 @@ if "sqlite" not in database_url:
     # Only for Postgres/Neon
     connect_args = {"ssl": "require"}
 
+logger.info(f"🛠️ DEBUG: Connecting to {database_url.split('@')[1] if '@' in database_url else 'SQLITE'}")
+
 engine = create_async_engine(
     database_url,
     connect_args=connect_args,
+    echo=True,  # Enable SQL query logging for debugging
 )
 
 async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
