@@ -21,7 +21,7 @@ pytesseract==0.3.10
 
 # AI & Data
 # Note: We removed sentence-transformers and torch!
-numpy
+numpy<2.0.0
 requests
 chromadb==0.4.22
 groq==0.32.0
