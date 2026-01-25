@@ -115,9 +115,6 @@ PyPika==0.48.9
 pyproject_hooks==1.2.0
 pyreadline3==3.5.4
 pytesseract==0.3.10
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.0
 python-jose==3.3.0
@@ -165,7 +162,6 @@ uv==0.8.24
 uvicorn==0.24.0
 validators==0.35.0
 vine==5.1.0
-watchdog==6.0.0
 watchfiles==1.1.0
 wcwidth==0.2.14
 websocket-client==1.8.0

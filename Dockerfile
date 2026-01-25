@@ -10,16 +10,20 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. Set up working directory
+
 WORKDIR /app
+
+# 2. Install uv (Faster pip replacement)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:$PATH"
 
 # 3. Copy requirements first to cache dependencies
 COPY requirements.txt .
 
-# 4. Install Python dependencies
-# Use --extra-index-url to prioritize CPU wheels
-RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
-RUN pip install --no-cache-dir -r requirements.txt
+# 4. Install dependencies using uv (much faster)
+# We install torch CPU explicitly first
+RUN uv pip install --system torch torchvision --index-url https://download.pytorch.org/whl/cpu
+RUN uv pip install --system -r requirements.txt
 
 # 5. Copy the rest of the application code
 COPY . .
