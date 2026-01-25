@@ -29,3 +29,5 @@ groq==0.32.0
 # Utilities
 email-validator
 httpx
+
+psycopg2-binary
