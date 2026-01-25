@@ -1,34 +1,7 @@
-# ==========================================
-# Stage 1: Builder
-# ==========================================
-FROM python:3.11-slim as builder
-
-# Install build tools
-RUN apt-get update && apt-get install -y curl build-essential
-
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
-
-# Create virtual environment
-RUN uv venv /opt/venv
-# Use the virtual environment for subsequent commands
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-WORKDIR /app
-COPY requirements.txt .
-
-# Install dependencies into the virtual environment
-# We verify the index-url is respected for CPU torch
-RUN uv pip install --no-cache torch torchvision --index-url https://download.pytorch.org/whl/cpu
-RUN uv pip install --no-cache -r requirements.txt
-
-# ==========================================
-# Stage 2: Runner (Final Image)
-# ==========================================
+# Use Python 3.11 slim image
 FROM python:3.11-slim
 
-# Install runtime system dependencies (Poppler/Tesseract)
+# 1. Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     tesseract-ocr \
@@ -36,17 +9,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the virtual environment from the builder stage
-COPY --from=builder /opt/venv /opt/venv
-
-# Enable the virtual environment
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
+# 2. Set up working directory
 WORKDIR /app
 
-# Copy application code
+# 3. Copy requirements
+COPY requirements.txt .
+
+# 4. Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 5. Copy the rest of the application code
 COPY . .
 
-# Run command
+# 6. Run command using the PORT environment variable provided by Railway
 CMD uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT
