@@ -27,7 +27,7 @@ class EmbeddingGenerator:
         self.model_name = model_name or ModelConfig.EMBEDDING_MODEL_NAME
 
         # Use the specific API URL for feature extraction
-        self.api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{self.model_name}"
+        self.api_url = f"https://api-inference.huggingface.co/models/{self.model_name}"
         self.api_key = os.getenv("HUGGINGFACE_API_KEY")
 
         if not self.api_key:
@@ -73,14 +73,20 @@ class EmbeddingGenerator:
                 
                 # Verify response structure (it should be a list of lists)
                 if isinstance(batch_embeddings, list) and len(batch_embeddings) > 0:
-                     all_embeddings.extend(batch_embeddings)
+                    # Check if it's a list of floats (single embedding) or list of lists (batch)
+                    if isinstance(batch_embeddings[0], float):
+                         all_embeddings.append(batch_embeddings) # Single embedding returned
+                    else:
+                         all_embeddings.extend(batch_embeddings) # List of embeddings
                 else:
                     logger.error(f"Unexpected API response format: {batch_embeddings}")
                     
             except Exception as e:
                 logger.error(f"Embedding API Error: {e}")
+                # Return zeros as fallback to prevent crash
                 # In production, you might want to retry or raise
-                raise
+                fallback = [np.zeros(self.dimension) for _ in batch]
+                all_embeddings.extend(fallback)
 
         return np.array(all_embeddings)
     
@@ -102,7 +108,7 @@ class EmbeddingGenerator:
     
     def get_dimension(self) -> int:
         """Get the dimension of embeddings produced by this model"""
-        return self.model.get_sentence_embedding_dimension()
+        return self.dimension
     
     def compute_similarity(self, text1: str, text2: str) -> float:
         """
