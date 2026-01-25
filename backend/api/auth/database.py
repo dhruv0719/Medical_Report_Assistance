@@ -38,7 +38,12 @@ if "?" in database_url:
         database_url = base_url
 
 # 3. Create the engine 
-engine = create_async_engine(database_url)
+engine = create_async_engine(
+    database_url,
+    connect_args={
+        "ssl": "require"  # Force SSL for asyncpg
+    }
+)
 async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
