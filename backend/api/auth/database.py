@@ -20,30 +20,27 @@ elif database_url.startswith("postgresql://"):
 elif database_url.startswith("sqlite:///"):
     database_url = database_url.replace("sqlite:///", "sqlite+aiosqlite:///")
 
-# Remove sslmode query param if present, as asyncpg handles it differently
+# 3. Clean up query parameters, We will pass SSL settings via connect_args instead
 if "?" in database_url:
     base_url, query = database_url.split("?", 1)
-    params = query.split("&")
-
-    # Filter out problematic params
-    allowed_params = []
-    for p in params:
-        key = p.split("=")[0]
-        if key not in ["sslmode", "channel_binding"]:
-            allowed_params.append(p)
-            
-    if allowed_params:
-        database_url = f"{base_url}?{'&'.join(allowed_params)}"
+    # Remove problematic params
+    params = [p for p in query.split("&") if not p.startswith("sslmode=") and not p.startswith("channel_binding=")]
+    if params:
+        database_url = f"{base_url}?{'&'.join(params)}"
     else:
         database_url = base_url
 
-# 3. Create the engine 
+# 4. Create the engine with EXPLICIT SSL CONTEXT
+connect_args = {}
+if "sqlite" not in database_url:
+    # Only for Postgres/Neon
+    connect_args = {"ssl": "require"}
+
 engine = create_async_engine(
     database_url,
-    connect_args={
-        "ssl": "require"  # Force SSL for asyncpg
-    }
+    connect_args=connect_args,
 )
+
 async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
