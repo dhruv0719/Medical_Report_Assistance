@@ -21,5 +21,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 5. Copy the rest of the application code
 COPY . .
 
-# 6. Run command using the PORT environment variable provided by Railway
-CMD uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT
+# Use shell form to ensure $PORT is expanded correctly
+CMD sh -c "uvicorn backend.api.main:app --host 0.0.0.0 --port ${PORT:-8080}"
