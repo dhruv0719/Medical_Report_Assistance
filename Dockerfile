@@ -4,8 +4,8 @@ FROM python:3.11-slim
 # Copy uv from its official image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# 1. Install system dependencies
-RUN apt-get update && apt-get install -y \
+# 1. Install system dependencies & clean up immediately
+RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     tesseract-ocr \
     libgl1 \
@@ -18,8 +18,9 @@ WORKDIR /app
 COPY requirements.txt .
 
 # 3. Install dependencies using uv
-RUN uv pip install --system torch torchvision --index-url https://download.pytorch.org/whl/cpu
-RUN uv pip install --system -r requirements.txt
+# --no-cache prevents uv from storing the downloaded wheels (saving space)
+RUN uv pip install --system --no-cache torch torchvision --index-url https://download.pytorch.org/whl/cpu
+RUN uv pip install --system --no-cache -r requirements.txt
 
 # 4. Copy application code
 COPY . .
