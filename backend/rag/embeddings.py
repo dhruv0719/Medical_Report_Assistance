@@ -1,9 +1,11 @@
 # backend/rag/embeddings.py
 """
-Embedding generation using sentence transformers.
+Embedding generation using Hugging Face Inference API.
 Converts text into dense vector representations for semantic search.
 """
 
+import os
+import requests
 import numpy as np
 from typing import List, Union
 from sentence_transformers import SentenceTransformer
@@ -13,30 +15,39 @@ from config.logging_config import get_logger
 logger = get_logger(__name__)
 
 class EmbeddingGenerator:
-    """Generates embeddings for text using sentence transformers"""
+    """Generates embeddings for text using Hugging Face models."""
     
     def __init__(self, model_name: str = None, device: str = None):
         """
         Initialize embedding generator.
         
         Args:
-            model_name: Name of the sentence transformer model
-            device: Device to run on ('cpu' or 'cuda')
+            model_name: Name of the model (default from config)
+            device: Ignored (handled by Hugging Face API)
         """
         self.model_name = model_name or ModelConfig.EMBEDDING_MODEL_NAME
-        self.device = device or ModelConfig.EMBEDDING_DEVICE
+
+        # Use the specific API URL for feature extraction
+        self.api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{self.model_name}"
+        self.api_key = os.getenv("HUGGINGFACE_API_KEY")
+
+        if not self.api_key:
+            logger.error("⚠️ HUGGINGFACE_API_KEY not found. Embeddings will fail.")
+
+        self.headers = {"Authorization": f"Bearer {self.api_key}"}
         
-        logger.info(f"Loading embedding model: {self.model_name}")
-        self.model = SentenceTransformer(self.model_name, device=self.device)
-        logger.info(f"✅ Embedding model loaded (dimension: {self.get_dimension()})")
+        # Hardcoded for all-MiniLM-L6-v2, or could be fetched
+        self.dimension = 384 
+        
+        logger.info(f"✅ Embedding API initialized for model: {self.model_name}")
     
     def generate(self, texts: Union[str, List[str]], batch_size: int = 32) -> np.ndarray:
         """
-        Generate embeddings for one or more texts.
+        Generate embeddings for one or more texts via API.
         
         Args:
             texts: Single text or list of texts
-            batch_size: Number of texts to process at once
+            batch_size: Number of texts per API call (to avoid payload limits)
             
         Returns:
             Numpy array of embeddings
@@ -45,17 +56,34 @@ class EmbeddingGenerator:
         if isinstance(texts, str):
             texts = [texts]
         
-        logger.debug(f"Generating embeddings for {len(texts)} texts")
+        logger.debug(f"Generating embeddings for {len(texts)} texts via API")
         
-        # Generate embeddings
-        embeddings = self.model.encode(
-            texts,
-            batch_size=batch_size,
-            show_progress_bar=False,
-            convert_to_numpy=True
-        )
+        all_embeddings = []
         
-        return embeddings
+        # Process in batches to respect API limits
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i : i + batch_size]
+            try:
+                response = requests.post(
+                    self.api_url, 
+                    headers=self.headers, 
+                    json={"inputs": batch, "options": {"wait_for_model": True}}
+                )
+                response.raise_for_status()
+                batch_embeddings = response.json()
+                
+                # Verify response structure (it should be a list of lists)
+                if isinstance(batch_embeddings, list) and len(batch_embeddings) > 0:
+                     all_embeddings.extend(batch_embeddings)
+                else:
+                    logger.error(f"Unexpected API response format: {batch_embeddings}")
+                    
+            except Exception as e:
+                logger.error(f"Embedding API Error: {e}")
+                # In production, you might want to retry or raise
+                raise
+
+        return np.array(all_embeddings)
     
     def generate_single(self, text: str) -> np.ndarray:
         """
@@ -67,12 +95,11 @@ class EmbeddingGenerator:
         Returns:
             1D numpy array of embedding
         """
-        embedding = self.model.encode(
-            text,
-            show_progress_bar=False,
-            convert_to_numpy=True
-        )
-        return embedding
+        # The API returns a list of lists [ [emb] ] for a single input list
+        embeddings = self.generate([text])
+        if len(embeddings) > 0:
+            return embeddings[0]
+        return np.zeros(self.dimension) # Fail-safe
     
     def get_dimension(self) -> int:
         """Get the dimension of embeddings produced by this model"""
@@ -93,7 +120,13 @@ class EmbeddingGenerator:
         emb2 = self.generate_single(text2)
         
         # Cosine similarity
-        similarity = np.dot(emb1, emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2))
+        norm1 = np.linalg.norm(emb1)
+        norm2 = np.linalg.norm(emb2)
+        
+        if norm1 == 0 or norm2 == 0:
+            return 0.0
+            
+        similarity = np.dot(emb1, emb2) / (norm1 * norm2)
         return float(similarity)
 
 
