@@ -23,31 +23,31 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6 w-full max-w-5xl mx-auto px-4 md:px-0">
       {/* Header / Triage Banner */}
-      <div className={`p-6 rounded-xl border ${getUrgencyColor(data.triage.overall_urgency)}`}>
-        <div className="flex items-start justify-between">
+      <div className={`p-4 md:p-6 rounded-xl border ${getUrgencyColor(data.triage.overall_urgency)}`}>
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              {data.triage.overall_urgency === 'CRITICAL' && <AlertTriangle className="h-6 w-6" />}
+            <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+              {data.triage.overall_urgency === 'CRITICAL' && <AlertTriangle className="h-6 w-6 flex-shrink-0" />}
               Urgency: {data.triage.overall_urgency}
             </h2>
-            <p className="mt-2 text-lg font-medium opacity-90">
+            <p className="mt-2 text-base md:text-lg font-medium opacity-90">
               {data.triage.recommendation}
             </p>
           </div>
           <button 
             onClick={onReset}
-            className="px-4 py-2 bg-white bg-opacity-50 hover:bg-opacity-80 rounded-lg text-sm font-medium transition-colors"
+            className="w-full md:w-auto px-4 py-2 bg-white bg-opacity-50 hover:bg-opacity-80 rounded-lg text-sm font-medium transition-colors text-center"
           >
             Analyze Another
           </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+      {/* Tabs - Scrollable on mobile */}
+      <div className="border-b border-gray-200 overflow-x-auto">
+        <nav className="-mb-px flex space-x-8 min-w-max">
           {['summary', 'explanations', 'next_steps'].map((tab) => (
             <button
               key={tab}
@@ -66,18 +66,19 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 min-h-[400px] p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 min-h-[400px] p-4 md:p-6">
         
         {/* SUMMARY TAB */}
         {activeTab === 'summary' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <StatCard label="Total Tests" value={data.parsed.tests.length} />
               <StatCard label="Abnormal" value={data.parsed.tests.filter((t: any) => t.is_abnormal).length} type="warning" />
               <StatCard label="Critical" value={data.triage.critical_count} type="danger" />
             </div>
 
-            <div className="overflow-hidden border border-gray-200 rounded-lg">
+            {/* Desktop Table View (Hidden on mobile) */}
+            <div className="hidden md:block overflow-hidden border border-gray-200 rounded-lg">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -94,20 +95,34 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{test.value} {test.unit}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{test.reference_range}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {test.is_abnormal ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            {test.flag || 'Abnormal'}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Normal
-                          </span>
-                        )}
+                        <StatusBadge test={test} />
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View (Visible only on mobile) */}
+            <div className="md:hidden space-y-4">
+              {data.parsed.tests.map((test: any, idx: number) => (
+                <div key={idx} className={`p-4 rounded-lg border ${test.is_abnormal ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'}`}>
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="font-semibold text-gray-900">{test.name}</span>
+                    <StatusBadge test={test} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-gray-500 text-xs uppercase">Value</p>
+                      <p className="font-medium">{test.value} {test.unit}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs uppercase">Normal Range</p>
+                      <p className="text-gray-700">{test.reference_range}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -124,11 +139,11 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
         {/* NEXT STEPS TAB */}
         {activeTab === 'next_steps' && (
           <div className="prose max-w-none">
-            <ul className="space-y-3">
+            <ul className="space-y-3 pl-0">
               {data.triage.next_steps.map((step: string, idx: number) => (
-                <li key={idx} className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">{step}</span>
+                <li key={idx} className="flex items-start bg-gray-50 p-3 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700 text-sm md:text-base">{step}</span>
                 </li>
               ))}
             </ul>
@@ -136,6 +151,19 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
         )}
       </div>
     </div>
+  );
+}
+
+// Helper Component for Status Badge
+function StatusBadge({ test }: { test: any }) {
+  return test.is_abnormal ? (
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+      {test.flag || 'Abnormal'}
+    </span>
+  ) : (
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+      Normal
+    </span>
   );
 }
 
@@ -164,9 +192,13 @@ function ExplanationCard({ name, explanation }: { name: string, explanation: any
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-4 text-left"
       >
-        <div className="flex items-center gap-3">
-          {explanation.is_abnormal ? <AlertTriangle className="h-5 w-5 text-orange-500" /> : <Info className="h-5 w-5 text-blue-500" />}
-          <span className="font-semibold text-gray-900">{name}</span>
+        <div className="flex items-center gap-3 max-w-[85%]">
+          {explanation.is_abnormal ? (
+            <AlertTriangle className="h-5 w-5 text-orange-500 flex-shrink-0" />
+          ) : (
+            <Info className="h-5 w-5 text-blue-500 flex-shrink-0" />
+          )}
+          <span className="font-semibold text-gray-900 text-sm md:text-base truncate">{name}</span>
         </div>
         {isOpen ? <ChevronUp className="h-5 w-5 text-gray-500" /> : <ChevronDown className="h-5 w-5 text-gray-500" />}
       </button>
@@ -177,7 +209,7 @@ function ExplanationCard({ name, explanation }: { name: string, explanation: any
             {explanation.text}
           </div>
           {explanation.sources && explanation.sources.length > 0 && (
-            <div className="mt-3 text-xs text-gray-500 flex items-center gap-1">
+            <div className="mt-3 text-xs text-gray-500 flex flex-wrap items-center gap-1">
               <FileText className="h-3 w-3" />
               Sources: {explanation.sources.join(', ')}
             </div>
