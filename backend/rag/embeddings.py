@@ -5,6 +5,7 @@ Converts text into dense vector representations for semantic search.
 """
 
 import os
+import time
 import requests
 import numpy as np
 from typing import List, Union
@@ -24,6 +25,31 @@ class EmbeddingGenerator:
             model_name: Name of the model (default from config)
             device: Ignored (handled by Hugging Face API)
         """
+        from requests.adapters import HTTPAdapter
+        from urllib3.util.retry import Retry
+
+        self.session = requests.Session()
+        
+        retry_strategy = Retry(
+            total=3,
+            connect=3,
+            read=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=frozenset(["POST"])
+        )
+
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
+
+        self.failure_count = 0
+        self.failure_threshold = 2
+        self.circuit_open = False
+        self.circuit_reset_timeout = 60
+        self.last_failure_time = None
+
         self.model_name = model_name or ModelConfig.EMBEDDING_MODEL_NAME
 
         # Use the specific API URL for feature extraction
@@ -63,14 +89,45 @@ class EmbeddingGenerator:
         for i in range(0, len(texts), batch_size):
             batch = texts[i : i + batch_size]
             try:
-                response = requests.post(
-                    self.api_url, 
-                    headers=self.headers, 
-                    json={"inputs": batch, "options": {"wait_for_model": True}}
+                # response = requests.post(
+                #     self.api_url, 
+                #     headers=self.headers, 
+                #     json={"inputs": batch, "options": {"wait_for_model": True}}
+                # )
+
+                if self.circuit_open and self.last_failure_time:
+                    elapsed = time.time() - self.last_failure_time
+
+                    if elapsed < self.circuit_reset_timeout:
+                        logger.warning("Circuit breaker OPEN. Skipping HF API call.")
+
+                        fallback = [np.zeros(self.dimension) for _ in batch]
+                        all_embeddings.extend(fallback)
+                        continue
+                    
+                    logger.info("Circuit breaker HALF-OPEN. Retrying API.")
+                    self.circuit_open = False
+                    self.failure_count = 0
+
+                response = self.session.post(
+                    self.api_url,
+                    headers=self.headers,
+                    json={
+                        "inputs": batch,
+                        "options": {"wait_for_model":True}
+                    },
+                    timeout=(5,8)
                 )
                 response.raise_for_status()
                 batch_embeddings = response.json()
                 
+                if isinstance(batch_embeddings, dict) and "error" in batch_embeddings:
+                    raise RuntimeError(
+                        f"HuggingFace API Error: {batch_embeddings['error']}"
+                    )
+
+                self.failure_count = 0
+
                 # Verify response structure (it should be a list of lists)
                 if isinstance(batch_embeddings, list) and len(batch_embeddings) > 0:
                     # Check if it's a list of floats (single embedding) or list of lists (batch)
@@ -82,6 +139,17 @@ class EmbeddingGenerator:
                     logger.error(f"Unexpected API response format: {batch_embeddings}")
                     
             except Exception as e:
+                self.failure_count += 1
+                self.last_failure_time = time.time()
+
+                if self.failure_count >= self.failure_threshold:
+                    self.circuit_open = True
+
+                    logger.error(
+                        f"Circuit breaker OPENED after "
+                        f"{self.failure_count} failures."
+                    )
+
                 logger.error(f"Embedding API Error: {e}")
                 # Return zeros as fallback to prevent crash
                 # In production, you might want to retry or raise
