@@ -65,12 +65,6 @@ class EmbeddingGenerator:
         self.dimension = 384 
         
         logger.info(f"✅ Embedding API initialized for model: {self.model_name}")
-
-        self.device = device or ModelConfig.EMBEDDING_DEVICE
-        logger.info(f"Loading LOCAL embedding fallback model: {self.model_name} on {self.device}")
-
-        self.local_model = SentenceTransformer(self.model_name, device=self.device)
-        logger.info("✅ Local embedding fallback model loaded")
     
     def generate(self, texts: Union[str, List[str]], batch_size: int = 32) -> np.ndarray:
         """
@@ -107,10 +101,8 @@ class EmbeddingGenerator:
                     if elapsed < self.circuit_reset_timeout:
                         logger.warning("Circuit breaker OPEN. Skipping HF API call.")
 
-                        fallback_embeddings = self._generate_local(batch, batch_size=batch_size
-                        )
-
-                        all_embeddings.extend(fallback_embeddings)
+                        fallback = [np.zeros(self.dimension) for _ in batch]
+                        all_embeddings.extend(fallback)
                         continue
                     
                     logger.info("Circuit breaker HALF-OPEN. Retrying API.")
@@ -209,33 +201,6 @@ class EmbeddingGenerator:
             
         similarity = np.dot(emb1, emb2) / (norm1 * norm2)
         return float(similarity)
-
-    def _generate_local(self, texts: List[str], batch_size: int = 32) -> np.ndarray:
-        """
-        Generate embeddings using local SentenceTransformer model.
-        """
-
-        try:
-            logger.warning(
-                "⚠️ Using LOCAL embedding fallback model"
-            )
-
-            embeddings = self.local_model.encode(
-                texts,
-                batch_size=batch_size,
-                show_progress_bar=False,
-                convert_to_numpy=True
-            )
-
-            return embeddings   
-
-        except Exception as e:
-            logger.error(f"Local embedding failed: {e}")
-
-            return np.array([
-                np.zeros(self.dimension)
-                for _ in texts
-            ])
 
 
 __all__ = ["EmbeddingGenerator"]
