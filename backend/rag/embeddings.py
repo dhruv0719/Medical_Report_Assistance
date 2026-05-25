@@ -9,7 +9,6 @@ import time
 import requests
 import numpy as np
 from typing import List, Union
-from sentence_transformers import SentenceTransformer
 from config.settings import ModelConfig
 from config.logging_config import get_logger
 
