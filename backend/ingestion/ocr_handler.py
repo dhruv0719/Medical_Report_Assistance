@@ -5,12 +5,17 @@ Extracts text from PDF images and scanned documents.
 """
 
 import io
+import cv2
 import pytesseract
+import numpy as np
 from pdf2image import convert_from_bytes
 from PIL import Image
 from typing import Tuple, Optional
 from config.settings import UploadConfig
 from config.logging_config import get_logger
+from backend.ingestion.image_quality_analyzer import ImageQualityAnalyzer
+from backend.ingestion.preprocessing_strategies import OCRPreprocessor
+from backend.ingestion.strategy_selector import OCRStrategySelector
 
 logger = get_logger(__name__)
 
@@ -20,6 +25,10 @@ class OCRHandler:
     def __init__(self):
         self.language = UploadConfig.OCR_LANGUAGE
         self.dpi = UploadConfig.OCR_DPI
+        self.custom_config = UploadConfig.CUSTOM_OCR_CONFIG
+        self.quality_analyzer = ImageQualityAnalyzer()
+        self.strategy_selector = OCRStrategySelector()
+        self.preprocessor = OCRPreprocessor()
     
     def extract_from_images(self, pdf_bytes: bytes) -> Tuple[str, dict]:
         """
@@ -49,18 +58,31 @@ class OCRHandler:
             
             for i, image in enumerate(images, 1):
                 logger.info(f"Processing page {i}/{len(images)}...")
+
+                metrics = self.quality_analyzer.analyze(image)
+
+                selected_strategy = self.strategy_selector.choose_strategy(metrics)
+
+                logger.info(f"Selected preprocessing strategy: {selected_strategy}")
+
+                preprocessed_image = self.preprocessor.apply_strategy(
+                    image,
+                    selected_strategy
+                )
                 
                 # Get OCR data with confidence
                 ocr_data = pytesseract.image_to_data(
-                    image,
+                    preprocessed_image,
                     lang=self.language,
+                    config=self.custom_config,
                     output_type=pytesseract.Output.DICT
                 )
                 
                 # Extract text
                 page_text = pytesseract.image_to_string(
-                    image,
-                    lang=self.language
+                    preprocessed_image,
+                    lang=self.language,
+                    config=self.custom_config
                 )
                 
                 full_text += f"\n--- Page {i} ---\n{page_text}"
@@ -104,12 +126,21 @@ class OCRHandler:
         """
         try:
             # Get text
-            text = pytesseract.image_to_string(image, lang=self.language)
+            metrics = self.quality_analyzer.analyze(image)
+
+            selected_strategy = self.strategy_selector.choose_strategy(metrics)
+
+            preprocessed_image = self.preprocessor.apply_strategy(
+                image,
+                selected_strategy
+            )
+            text = pytesseract.image_to_string(preprocessed_image, lang=self.language, config=self.custom_config)
             
             # Get confidence
             ocr_data = pytesseract.image_to_data(
-                image,
+                preprocessed_image,
                 lang=self.language,
+                config=self.custom_config,
                 output_type=pytesseract.Output.DICT
             )
             
@@ -153,8 +184,3 @@ class OCRHandler:
         except Exception as e:
             logger.warning(f"Could not check text extractability: {str(e)}")
             return False
-
-
-__all__ = [
-    "OCRHandler",
-]
