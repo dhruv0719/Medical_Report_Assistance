@@ -1,186 +1,189 @@
 # backend/ingestion/ocr_handler.py
 """
-OCR handling using Tesseract.
-Extracts text from PDF images and scanned documents.
+OCR handler — public entry point for the ingestion pipeline.
+
+Delegates all image-level OCR decisions to AdaptiveOCREngine.
+ImageQualityAnalyzer / OCRStrategySelector are retained as *hint* providers,
+not as binding decision-makers.
 """
 
 import io
-import cv2
-import pytesseract
-import numpy as np
+from typing import Tuple
+
 from pdf2image import convert_from_bytes
 from PIL import Image
-from typing import Tuple, Optional
-from config.settings import UploadConfig
+
 from config.logging_config import get_logger
+from config.settings import UploadConfig
 from backend.ingestion.image_quality_analyzer import ImageQualityAnalyzer
-from backend.ingestion.preprocessing_strategies import OCRPreprocessor
 from backend.ingestion.strategy_selector import OCRStrategySelector
+from backend.ingestion.adaptive_ocr_engine import AdaptiveOCREngine, OCRResult
 
 logger = get_logger(__name__)
 
+
 class OCRHandler:
-    """Handles OCR operations using Tesseract"""
-    
-    def __init__(self):
-        self.language = UploadConfig.OCR_LANGUAGE
-        self.dpi = UploadConfig.OCR_DPI
-        self.custom_config = UploadConfig.CUSTOM_OCR_CONFIG
+    """
+    Public OCR interface used by the rest of the application.
+
+    Key design changes vs the previous version
+    -------------------------------------------
+    • Preprocessing is no longer forced on every image.
+    • OCRStrategySelector output is passed as a hint to AdaptiveOCREngine,
+      which tries raw OCR first and only preprocesses if needed.
+    • The returned confidence / score is now the composite OCREvaluator score
+      (0-100) rather than raw Tesseract confidence — it is a better signal
+      of actual extraction quality.
+
+    Public methods
+    --------------
+    extract_from_images(pdf_bytes)  → (full_text, metadata_dict)
+    extract_from_image_file(image)  → (text, composite_score)
+    is_text_extractable(pdf_bytes)  → bool
+    """
+
+    def __init__(self) -> None:
+        self.dpi              = UploadConfig.OCR_DPI
         self.quality_analyzer = ImageQualityAnalyzer()
         self.strategy_selector = OCRStrategySelector()
-        self.preprocessor = OCRPreprocessor()
-    
+        self.engine           = AdaptiveOCREngine()
+
+    # ------------------------------------------------------------------
+    # PDF extraction
+    # ------------------------------------------------------------------
+
     def extract_from_images(self, pdf_bytes: bytes) -> Tuple[str, dict]:
         """
-        Extract text from PDF using OCR.
-        
+        Extract text from every page of a PDF using adaptive OCR.
+
         Args:
-            pdf_bytes: PDF file as bytes
-            
+            pdf_bytes: Raw PDF file bytes.
+
         Returns:
-            (extracted_text, metadata)
+            (full_text, metadata) where metadata contains:
+              page_count          – number of pages processed
+              ocr_confidence      – mean composite score across pages (0-100)
+              extraction_method   – always "adaptive_ocr"
+              total_time_sec      – wall-clock seconds for the whole call
+              page_details        – list of per-page dicts with score breakdown
         """
-        logger.info("Starting OCR extraction...")
-        
-        try:
-            # Convert PDF to images
-            images = convert_from_bytes(
-                pdf_bytes,
-                dpi=self.dpi,
-                fmt='jpeg'
+        logger.info("[OCRHandler] Starting adaptive PDF extraction")
+
+        images = convert_from_bytes(pdf_bytes, dpi=self.dpi, fmt="jpeg")
+        logger.info(f"[OCRHandler] PDF has {len(images)} page(s)")
+
+        full_text    = ""
+        page_details = []
+        total_time   = 0.0
+
+        for i, image in enumerate(images, 1):
+            logger.info(f"[OCRHandler] Processing page {i}/{len(images)}")
+
+            hint   = self._get_hint(image)
+            result = self.engine.process(image, hint_strategy=hint)
+
+            full_text  += f"\n--- Page {i} ---\n{result.text}"
+            total_time += result.processing_time
+
+            page_details.append({
+                "page":                 i,
+                "winning_strategy":     result.winning_strategy,
+                "composite_score":      round(result.composite_score, 2),
+                "tesseract_confidence": round(result.score.tesseract_confidence, 2),
+                "skipped_preprocessing": result.skipped_preprocessing,
+                "strategies_tried":     result.strategies_tried,
+                "time_sec":             result.processing_time,
+            })
+
+            logger.info(
+                f"[OCRHandler] Page {i} → strategy={result.winning_strategy!r}, "
+                f"composite={result.composite_score:.1f}, "
+                f"skipped_preprocessing={result.skipped_preprocessing}"
             )
-            
-            logger.info(f"Converted PDF to {len(images)} images")
-            
-            # Extract text from each page
-            full_text = ""
-            confidences = []
-            
-            for i, image in enumerate(images, 1):
-                logger.info(f"Processing page {i}/{len(images)}...")
 
-                metrics = self.quality_analyzer.analyze(image)
+        mean_score = (
+            sum(p["composite_score"] for p in page_details) / len(page_details)
+            if page_details else 0.0
+        )
 
-                selected_strategy = self.strategy_selector.choose_strategy(metrics)
+        metadata = {
+            "page_count":        len(images),
+            "ocr_confidence":    round(mean_score, 2),
+            "extraction_method": "adaptive_ocr",
+            "total_time_sec":    round(total_time, 3),
+            "page_details":      page_details,
+        }
 
-                logger.info(f"Selected preprocessing strategy: {selected_strategy}")
+        logger.info(
+            f"[OCRHandler] Extraction complete — "
+            f"pages={len(images)}, mean_score={mean_score:.1f}, "
+            f"total_time={total_time:.2f}s"
+        )
 
-                preprocessed_image = self.preprocessor.apply_strategy(
-                    image,
-                    selected_strategy
-                )
-                
-                # Get OCR data with confidence
-                ocr_data = pytesseract.image_to_data(
-                    preprocessed_image,
-                    lang=self.language,
-                    config=self.custom_config,
-                    output_type=pytesseract.Output.DICT
-                )
-                
-                # Extract text
-                page_text = pytesseract.image_to_string(
-                    preprocessed_image,
-                    lang=self.language,
-                    config=self.custom_config
-                )
-                
-                full_text += f"\n--- Page {i} ---\n{page_text}"
-                
-                # Calculate average confidence for this page
-                page_confidences = [
-                    int(conf) for conf in ocr_data['conf'] 
-                    if conf != '-1' and str(conf).isdigit()
-                ]
-                if page_confidences:
-                    avg_confidence = sum(page_confidences) / len(page_confidences)
-                    confidences.append(avg_confidence)
-                    logger.info(f"Page {i} OCR confidence: {avg_confidence:.1f}%")
-            
-            # Calculate overall confidence
-            overall_confidence = sum(confidences) / len(confidences) if confidences else 0
-            
-            metadata = {
-                "page_count": len(images),
-                "ocr_confidence": round(overall_confidence, 2),
-                "extraction_method": "ocr"
-            }
-            
-            logger.info(f"OCR completed. Extracted {len(full_text)} characters with {overall_confidence:.1f}% confidence")
-            
-            return full_text, metadata
-            
-        except Exception as e:
-            logger.error(f"OCR extraction failed: {str(e)}")
-            raise
-    
+        return full_text, metadata
+
+    # ------------------------------------------------------------------
+    # Single-image extraction
+    # ------------------------------------------------------------------
+
     def extract_from_image_file(self, image: Image.Image) -> Tuple[str, float]:
         """
-        Extract text from a single image.
-        
+        Extract text from a single PIL Image using adaptive OCR.
+
         Args:
-            image: PIL Image object
-            
+            image: PIL Image object (any mode).
+
         Returns:
-            (text, confidence)
+            (text, composite_score)  — score is 0-100 (OCREvaluator composite).
         """
-        try:
-            # Get text
-            metrics = self.quality_analyzer.analyze(image)
+        hint   = self._get_hint(image)
+        result = self.engine.process(image, hint_strategy=hint)
 
-            selected_strategy = self.strategy_selector.choose_strategy(metrics)
+        logger.info(
+            f"[OCRHandler] Image OCR → strategy={result.winning_strategy!r}, "
+            f"composite={result.composite_score:.1f}"
+        )
 
-            preprocessed_image = self.preprocessor.apply_strategy(
-                image,
-                selected_strategy
-            )
-            text = pytesseract.image_to_string(preprocessed_image, lang=self.language, config=self.custom_config)
-            
-            # Get confidence
-            ocr_data = pytesseract.image_to_data(
-                preprocessed_image,
-                lang=self.language,
-                config=self.custom_config,
-                output_type=pytesseract.Output.DICT
-            )
-            
-            confidences = [
-                int(conf) for conf in ocr_data['conf'] 
-                if conf != '-1' and str(conf).isdigit()
-            ]
-            
-            avg_confidence = sum(confidences) / len(confidences) if confidences else 0
-            
-            return text, avg_confidence
-            
-        except Exception as e:
-            logger.error(f"Image OCR failed: {str(e)}")
-            raise
-    
+        return result.text, result.composite_score
+
+    # ------------------------------------------------------------------
+    # Native text check
+    # ------------------------------------------------------------------
+
     def is_text_extractable(self, pdf_bytes: bytes) -> bool:
         """
-        Check if PDF has extractable text (not scanned image).
-        
-        Args:
-            pdf_bytes: PDF file bytes
-            
-        Returns:
-            True if text can be extracted directly
+        Return True if the PDF has embedded (selectable) text on the first page.
+
+        Uses this to decide whether the caller should use a native text extractor
+        instead of (or in addition to) OCR.
         """
         try:
             from PyPDF2 import PdfReader
-            
-            pdf_file = io.BytesIO(pdf_bytes)
-            reader = PdfReader(pdf_file)
-            
-            # Check first page for text
-            if len(reader.pages) > 0:
-                first_page_text = reader.pages[0].extract_text()
-                # If we got meaningful text, it's extractable
-                return len(first_page_text.strip()) > 50
-            
+
+            reader     = PdfReader(io.BytesIO(pdf_bytes))
+            first_page = reader.pages[0] if reader.pages else None
+
+            if first_page is None:
+                return False
+
+            extracted = first_page.extract_text() or ""
+            return len(extracted.strip()) > 50
+
+        except Exception as exc:
+            logger.warning(f"[OCRHandler] Could not check text extractability: {exc}")
             return False
-            
-        except Exception as e:
-            logger.warning(f"Could not check text extractability: {str(e)}")
-            return False
+
+    # ------------------------------------------------------------------
+    # Private
+    # ------------------------------------------------------------------
+
+    def _get_hint(self, image: Image.Image) -> str:
+        """
+        Derive a strategy hint from image quality metrics.
+
+        The hint is passed to AdaptiveOCREngine as a *priority* hint — it
+        influences pipeline ordering but does not force preprocessing if the
+        raw result is already good enough.
+        """
+        metrics = self.quality_analyzer.analyze(image)
+        return self.strategy_selector.choose_strategy(metrics)
