@@ -169,6 +169,7 @@ class UploadConfig:
     OCR_LANGUAGE = "eng"
     OCR_DPI = 300
     MIN_TEXT_LENGTH = 50  # Minimum characters to consider valid extraction
+    CUSTOM_OCR_CONFIG = "--oem 3 --psm 6"  # OEM 3 = Default, PSM 6 = Assume a single uniform block of text
 
 
 # =============================================================================
