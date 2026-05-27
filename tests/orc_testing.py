@@ -22,37 +22,30 @@ from backend.ingestion.ocr_handler import OCRHandler
 
 class OCRTester:
     """
-    OCR Testing Utility
+    OCR Testing Utility — updated for AdaptiveOCREngine.
 
-    Features:
-    - Test OCR on images
-    - Test OCR on PDFs
-    - Show image quality metrics
-    - Show selected strategy
-    - Save processed images
-    - Save OCR text
-    - Measure OCR performance
+    Key changes from the old version:
+    - preprocessor is accessed via ocr.engine.preprocessor
+      (OCRHandler no longer exposes it directly)
+    - Strategy shown as [HINT STRATEGY] — it is a priority hint,
+      not a binding decision.  The engine may skip it entirely if
+      raw OCR is already good enough.
+    - After OCR runs, [ADAPTIVE RESULT] shows what the engine
+      actually decided: winning strategy, composite score, and
+      whether preprocessing was skipped.
+    - PDF metadata now includes per-page breakdown; printed in full.
+    - "OCR Confidence" label replaced with "Composite Score" to
+      reflect that it is the OCREvaluator composite (0-100), not
+      raw Tesseract confidence.
     """
 
     def __init__(self):
 
         self.ocr = OCRHandler()
 
-        # =====================================================
-        # DEBUG DIRECTORIES
-        # =====================================================
-
         Path("debug").mkdir(exist_ok=True)
-
-        Path("debug/preprocessed").mkdir(
-            parents=True,
-            exist_ok=True
-        )
-
-        Path("debug/raw").mkdir(
-            parents=True,
-            exist_ok=True
-        )
+        Path("debug/preprocessed").mkdir(parents=True, exist_ok=True)
+        Path("debug/raw").mkdir(parents=True, exist_ok=True)
 
     # =========================================================
     # IMAGE TESTING
@@ -71,80 +64,65 @@ class OCRTester:
             # =================================================
 
             image = Image.open(image_path)
-
             print(f"[INFO] Original image size: {image.size}")
 
             # =================================================
-            # ANALYZE IMAGE
+            # ANALYZE IMAGE QUALITY
             # =================================================
 
             metrics = self.ocr.quality_analyzer.analyze(image)
 
             print("\n[IMAGE METRICS]")
             print("-" * 50)
-
             for key, value in metrics.items():
-
                 if isinstance(value, float):
                     print(f"{key:<15}: {value:.2f}")
                 else:
                     print(f"{key:<15}: {value}")
 
             # =================================================
-            # SELECT STRATEGY
+            # HINT STRATEGY
+            # Strategy selector output is now a priority HINT
+            # passed to AdaptiveOCREngine — not a forced decision.
+            # The engine may skip preprocessing entirely if raw
+            # OCR composite score >= RAW_SKIP_THRESHOLD (85).
             # =================================================
 
-            selected_strategy = (
-                self.ocr.strategy_selector.choose_strategy(metrics)
-            )
+            hint_strategy = self.ocr.strategy_selector.choose_strategy(metrics)
 
-            print("\n[SELECTED STRATEGY]")
+            print("\n[HINT STRATEGY]")
             print("-" * 50)
-
-            print(selected_strategy)
+            print(f"{hint_strategy}  (hint only — engine decides final strategy)")
 
             # =================================================
-            # APPLY PREPROCESSING
+            # SAVE HINT-STRATEGY PREPROCESSED IMAGE (debug only)
+            # This shows what the hint pipeline would produce.
+            # It does NOT mean the engine used this pipeline.
             # =================================================
 
-            processed_image = (
-                self.ocr.preprocessor.apply_strategy(
-                    image,
-                    selected_strategy
-                )
+            processed_image = self.ocr.engine.preprocessor.apply_strategy(
+                image,
+                hint_strategy
             )
-
-            # =================================================
-            # SAVE PREPROCESSED IMAGE
-            # =================================================
 
             debug_image_path = (
                 f"debug/preprocessed/"
                 f"{Path(image_path).stem}_"
-                f"{selected_strategy}.png"
+                f"hint_{hint_strategy}.png"
             )
-
             processed_image.save(debug_image_path)
 
-            print(f"\n[INFO] Saved processed image:")
-            print(debug_image_path)
+            print(f"\n[INFO] Hint-strategy preprocessed image saved:")
+            print(f"       {debug_image_path}")
+            print(f"       (for visual debugging only — engine may not have used this)")
 
             # =================================================
-            # RUN OCR
+            # RUN ADAPTIVE OCR
             # =================================================
 
             start_time = time.time()
-
-            text, confidence = (
-                self.ocr.extract_from_image_file(image)
-            )
-
-            end_time = time.time()
-
-            processing_time = round(
-                end_time - start_time,
-                2
-            )
+            text, composite_score = self.ocr.extract_from_image_file(image)
+            processing_time = round(time.time() - start_time, 2)
 
             # =================================================
             # RESULTS
@@ -152,9 +130,8 @@ class OCRTester:
 
             print("\n[RESULTS]")
             print("-" * 50)
-
-            print(f"OCR Confidence : {confidence:.2f}%")
-            print(f"Processing Time: {processing_time} sec")
+            print(f"Composite Score : {composite_score:.2f} / 100")
+            print(f"Processing Time : {processing_time} sec")
 
             # =================================================
             # TEXT PREVIEW
@@ -162,11 +139,7 @@ class OCRTester:
 
             print("\n[TEXT PREVIEW]")
             print("-" * 80)
-
-            preview = text[:3000]
-
-            print(preview)
-
+            print(text[:3000])
             print("-" * 80)
 
             # =================================================
@@ -178,20 +151,14 @@ class OCRTester:
                 f"{Path(image_path).stem}_ocr_output.txt"
             )
 
-            with open(
-                output_text_path,
-                "w",
-                encoding="utf-8"
-            ) as f:
-
+            with open(output_text_path, "w", encoding="utf-8") as f:
                 f.write(text)
 
-            print(f"\n[INFO] OCR text saved:")
-            print(output_text_path)
+            print(f"\n[INFO] OCR text saved: {output_text_path}")
 
         except Exception as e:
-
             print(f"\n[ERROR] {str(e)}")
+            raise
 
     # =========================================================
     # PDF TESTING
@@ -213,120 +180,107 @@ class OCRTester:
                 pdf_bytes = f.read()
 
             # =================================================
-            # CHECK TEXT EXTRACTABILITY
+            # CHECK NATIVE TEXT EXTRACTABILITY
             # =================================================
 
-            extractable = (
-                self.ocr.is_text_extractable(pdf_bytes)
-            )
-
+            extractable = self.ocr.is_text_extractable(pdf_bytes)
             print(f"[INFO] Native Text Extractable: {extractable}")
 
             # =================================================
-            # CONVERT PDF TO IMAGES FOR DEBUGGING
+            # CONVERT TO IMAGES FOR PER-PAGE DEBUG ANALYSIS
+            # (separate from the OCR run below)
             # =================================================
 
             images = convert_from_path(pdf_path)
-
             print(f"[INFO] Total Pages: {len(images)}")
-
-            # =================================================
-            # ANALYZE EACH PAGE
-            # =================================================
 
             for i, image in enumerate(images, 1):
 
                 print("\n" + "-" * 80)
-                print(f"PAGE {i}")
+                print(f"PAGE {i} — PRE-RUN ANALYSIS")
                 print("-" * 80)
 
-                # =============================================
-                # ANALYZE IMAGE
-                # =============================================
-
-                metrics = (
-                    self.ocr.quality_analyzer.analyze(image)
-                )
+                # Image metrics
+                metrics = self.ocr.quality_analyzer.analyze(image)
 
                 print("\n[IMAGE METRICS]")
                 print("-" * 50)
-
                 for key, value in metrics.items():
-
                     if isinstance(value, float):
                         print(f"{key:<15}: {value:.2f}")
                     else:
                         print(f"{key:<15}: {value}")
 
-                # =============================================
-                # SELECT STRATEGY
-                # =============================================
+                # Hint strategy
+                hint_strategy = self.ocr.strategy_selector.choose_strategy(metrics)
 
-                selected_strategy = (
-                    self.ocr.strategy_selector.choose_strategy(
-                        metrics
-                    )
-                )
-
-                print("\n[SELECTED STRATEGY]")
+                print("\n[HINT STRATEGY]")
                 print("-" * 50)
+                print(f"{hint_strategy}  (hint only — engine decides final strategy)")
 
-                print(selected_strategy)
-
-                # =============================================
-                # APPLY PREPROCESSING
-                # =============================================
-
-                processed_image = (
-                    self.ocr.preprocessor.apply_strategy(
-                        image,
-                        selected_strategy
-                    )
+                # Save hint-preprocessed image for visual debugging
+                processed_image = self.ocr.engine.preprocessor.apply_strategy(
+                    image,
+                    hint_strategy
                 )
-
-                # =============================================
-                # SAVE PROCESSED IMAGE
-                # =============================================
 
                 debug_image_path = (
                     f"debug/preprocessed/"
                     f"{Path(pdf_path).stem}_"
                     f"page_{i}_"
-                    f"{selected_strategy}.png"
+                    f"hint_{hint_strategy}.png"
                 )
-
                 processed_image.save(debug_image_path)
 
-                print(f"\n[INFO] Saved processed image:")
-                print(debug_image_path)
+                print(f"\n[INFO] Hint-strategy preprocessed image saved:")
+                print(f"       {debug_image_path}")
 
             # =================================================
-            # RUN OCR
+            # RUN ADAPTIVE OCR (full document)
             # =================================================
 
             start_time = time.time()
-
-            text, metadata = (
-                self.ocr.extract_from_images(pdf_bytes)
-            )
-
-            end_time = time.time()
-
-            processing_time = round(
-                end_time - start_time,
-                2
-            )
+            text, metadata = self.ocr.extract_from_images(pdf_bytes)
+            wall_time = round(time.time() - start_time, 2)
 
             # =================================================
-            # RESULTS
+            # SUMMARY RESULTS
             # =================================================
 
-            print("\n[RESULTS]")
+            print("\n" + "=" * 80)
+            print("ADAPTIVE OCR RESULTS")
+            print("=" * 80)
+
+            print(f"\n[SUMMARY]")
+            print("-" * 50)
+            print(f"Pages             : {metadata['page_count']}")
+            print(f"Mean Composite    : {metadata['ocr_confidence']} / 100")
+            print(f"Engine Time       : {metadata['total_time_sec']} sec")
+            print(f"Wall-clock Time   : {wall_time} sec")
+
+            # =================================================
+            # PER-PAGE ADAPTIVE DECISIONS
+            # Shows what the engine actually decided for each page,
+            # which may differ from the hint shown above.
+            # =================================================
+
+            print(f"\n[PER-PAGE ADAPTIVE DECISIONS]")
             print("-" * 50)
 
-            print(f"Pages           : {metadata['page_count']}")
-            print(f"OCR Confidence  : {metadata['ocr_confidence']}%")
-            print(f"Processing Time : {processing_time} sec")
+            for page in metadata.get("page_details", []):
+                skipped = page["skipped_preprocessing"]
+                badge   = "SKIPPED PREPROCESSING" if skipped else "PREPROCESSED"
+
+                print(
+                    f"  Page {page['page']:<3} "
+                    f"winner={page['winning_strategy']:<16} "
+                    f"composite={page['composite_score']:>5.1f}  "
+                    f"tess={page['tesseract_confidence']:>5.1f}  "
+                    f"[{badge}]"
+                )
+                print(
+                    f"         tried: {page['strategies_tried']}"
+                )
 
             # =================================================
             # TEXT PREVIEW
@@ -334,11 +288,7 @@ class OCRTester:
 
             print("\n[TEXT PREVIEW]")
             print("-" * 80)
-
-            preview = text[:3000]
-
-            print(preview)
-
+            print(text[:3000])
             print("-" * 80)
 
             # =================================================
@@ -350,20 +300,14 @@ class OCRTester:
                 f"{Path(pdf_path).stem}_ocr_output.txt"
             )
 
-            with open(
-                output_text_path,
-                "w",
-                encoding="utf-8"
-            ) as f:
-
+            with open(output_text_path, "w", encoding="utf-8") as f:
                 f.write(text)
 
-            print(f"\n[INFO] OCR text saved:")
-            print(output_text_path)
+            print(f"\n[INFO] OCR text saved: {output_text_path}")
 
         except Exception as e:
-
             print(f"\n[ERROR] {str(e)}")
+            raise
 
 
 # =============================================================
