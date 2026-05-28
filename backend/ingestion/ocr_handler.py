@@ -86,13 +86,15 @@ class OCRHandler:
             total_time += result.processing_time
 
             page_details.append({
-                "page":                 i,
-                "winning_strategy":     result.winning_strategy,
-                "composite_score":      round(result.composite_score, 2),
-                "tesseract_confidence": round(result.score.tesseract_confidence, 2),
-                "skipped_preprocessing": result.skipped_preprocessing,
-                "strategies_tried":     result.strategies_tried,
-                "time_sec":             result.processing_time,
+                "page":                   i,
+                "winning_strategy":       result.winning_strategy,
+                "composite_score":        round(result.composite_score, 2),
+                "tesseract_confidence":   round(result.score.tesseract_confidence, 2),
+                "skipped_preprocessing":  result.skipped_preprocessing,
+                "hit_resolution_ceiling": result.hit_resolution_ceiling,
+                "stopped_early":          result.stopped_early,
+                "strategies_tried":       result.strategies_tried,
+                "time_sec":               result.processing_time,
             })
 
             logger.info(
