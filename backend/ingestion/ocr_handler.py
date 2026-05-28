@@ -90,9 +90,9 @@ class OCRHandler:
                 "winning_strategy":       result.winning_strategy,
                 "composite_score":        round(result.composite_score, 2),
                 "tesseract_confidence":   round(result.score.tesseract_confidence, 2),
+                "calls_made":             result.calls_made,
                 "skipped_preprocessing":  result.skipped_preprocessing,
                 "hit_resolution_ceiling": result.hit_resolution_ceiling,
-                "stopped_early":          result.stopped_early,
                 "strategies_tried":       result.strategies_tried,
                 "time_sec":               result.processing_time,
             })
@@ -100,6 +100,7 @@ class OCRHandler:
             logger.info(
                 f"[OCRHandler] Page {i} → strategy={result.winning_strategy!r}, "
                 f"composite={result.composite_score:.1f}, "
+                f"calls={result.calls_made}, "
                 f"skipped_preprocessing={result.skipped_preprocessing}"
             )
 
