@@ -268,15 +268,25 @@ class OCRTester:
             print("-" * 50)
 
             for page in metadata.get("page_details", []):
-                skipped = page["skipped_preprocessing"]
-                badge   = "SKIPPED PREPROCESSING" if skipped else "PREPROCESSED"
+                skipped  = page["skipped_preprocessing"]
+                ceiling  = page.get("hit_resolution_ceiling", False)
+                early    = page.get("stopped_early", False)
+
+                badges = []
+                if skipped:
+                    badges.append("SKIPPED PREPROCESSING")
+                if ceiling:
+                    badges.append("RESOLUTION CEILING")
+                if early:
+                    badges.append("STOPPED EARLY")
+                badge_str = " | ".join(badges) if badges else "PREPROCESSED"
 
                 print(
                     f"  Page {page['page']:<3} "
                     f"winner={page['winning_strategy']:<16} "
                     f"composite={page['composite_score']:>5.1f}  "
                     f"tess={page['tesseract_confidence']:>5.1f}  "
-                    f"[{badge}]"
+                    f"[{badge_str}]"
                 )
                 print(
                     f"         tried: {page['strategies_tried']}"
@@ -322,10 +332,10 @@ if __name__ == "__main__":
     # TEST IMAGE
     # =========================================================
 
-    # tester.test_image(r"D:\Medical_Assitance\sample\Images\Report_2.png")
+    tester.test_image(r"D:\Medical_Assitance\sample\Images\Report_2.png")
 
     # =========================================================
     # TEST PDF
-    # ============================  =============================
+    # =========================================================
 
-    tester.test_pdf(r"sample\pdfs\Report_1.pdf")
+    # tester.test_pdf(r"sample\pdfs\Report_2.pdf")
