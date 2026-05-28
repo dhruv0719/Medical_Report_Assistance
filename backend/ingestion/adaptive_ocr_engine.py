@@ -4,24 +4,36 @@ Adaptive multi-pass OCR engine.
 
 Decision flow per image
 ───────────────────────
-  1. Run RAW Tesseract (no preprocessing).
-  2. Score the result with OCREvaluator.
-  3. composite >= RAW_SKIP_THRESHOLD → return immediately (no preprocessing).
-  4. Otherwise: try preprocessing pipelines in priority order.
-       • hint_strategy from ImageQualityAnalyzer goes first.
+  1. Resolution ceiling check — log upfront if source image is small.
+  2. Run RAW Tesseract (no preprocessing).
+  3. Score the result with OCREvaluator.
+  4. composite >= RAW_SKIP_THRESHOLD (85)  → return immediately.
+  5. Otherwise: try preprocessing pipelines in priority order.
+       • hint_strategy from OCRStrategySelector goes first.
        • Remaining FALLBACK_PIPELINES follow.
-  5. Score every result; keep the running best.
-  6. Warn if the best score is still below MIN_ACCEPTABLE_SCORE.
-  7. Return best OCRResult.
+  6. After each pipeline: if composite >= PIPELINE_GOOD_ENOUGH_THRESHOLD (82)
+       → stop immediately, skip remaining pipelines.
+  7. Keep the running best across all pipelines tried.
+  8. Warn if the best score is still below MIN_ACCEPTABLE_SCORE (60).
+  9. Return best OCRResult.
 
-Why this is better than the old architecture
-─────────────────────────────────────────────
-  The old system forced preprocessing on every image.  For clean, high-DPI
-  PDFs Tesseract already achieves 85-90 % composite on the raw image;
-  CLAHE + adaptive thresholding then destroy anti-aliased glyph edges and
-  drop confidence by 6-10 points.  This engine avoids that cost entirely for
-  good inputs and still applies the right pipeline for genuinely degraded
-  images.
+Thresholds at a glance
+───────────────────────
+  RAW_SKIP_THRESHOLD             85  clean PDFs skip preprocessing entirely
+  PIPELINE_GOOD_ENOUGH_THRESHOLD 82  first pipeline that clears this stops the loop
+  MIN_ACCEPTABLE_SCORE           60  below this a warning is emitted
+  LOW_RES_PIXEL_THRESHOLD    600000  ~800x750; below this a ceiling warning fires
+
+Why PIPELINE_GOOD_ENOUGH_THRESHOLD matters
+────────────────────────────────────────────
+  Without it, the engine ran all four pipelines even after the first one
+  already found the best result (low_resolution at 77.8 for a 526x739 image).
+  The remaining three pipelines each cost ~1.5s and scored worse.
+  With the threshold at 82: if any pipeline clears it, the loop stops and
+  the remaining pipelines are skipped entirely.
+  For genuinely low-res images that cannot clear 82, all pipelines still
+  run — but the hit_resolution_ceiling flag communicates that the lower
+  score is a hard physical limit, not a fixable failure.
 """
 
 import time
@@ -54,12 +66,19 @@ class OCRResult:
         strategies_tried:       All strategies that were attempted, in order.
         processing_time:        Wall-clock seconds for the whole process() call.
         skipped_preprocessing:  True if raw OCR was good enough on its own.
+        hit_resolution_ceiling: True if source image was below LOW_RES_PIXEL_THRESHOLD.
+                                A lower composite score in this case is expected
+                                behaviour — no pipeline can manufacture missing pixels.
+        stopped_early:          True if a pipeline cleared PIPELINE_GOOD_ENOUGH_THRESHOLD
+                                and remaining pipelines were intentionally skipped.
     """
-    text:                  str
-    score:                 OCRScore
-    strategies_tried:      List[str]
-    processing_time:       float
-    skipped_preprocessing: bool
+    text:                   str
+    score:                  OCRScore
+    strategies_tried:       List[str]
+    processing_time:        float
+    skipped_preprocessing:  bool
+    hit_resolution_ceiling: bool = False
+    stopped_early:          bool = False
 
     @property
     def winning_strategy(self) -> str:
@@ -78,13 +97,14 @@ class AdaptiveOCREngine:
     """
     Multi-pass adaptive OCR engine.
 
-    Class-level thresholds (override via subclass or monkey-patch for testing):
-      RAW_SKIP_THRESHOLD    – composite score above which raw is "good enough".
-      MIN_ACCEPTABLE_SCORE  – composite below this triggers a warning log.
+    All thresholds are class-level constants — override via subclass
+    or direct assignment for testing without touching production defaults.
     """
 
-    RAW_SKIP_THRESHOLD:   float = 85.0
-    MIN_ACCEPTABLE_SCORE: float = 60.0
+    RAW_SKIP_THRESHOLD:             float = 85.0
+    PIPELINE_GOOD_ENOUGH_THRESHOLD: float = 82.0
+    MIN_ACCEPTABLE_SCORE:           float = 60.0
+    LOW_RES_PIXEL_THRESHOLD:        int   = 600_000  # ~800x750 px
 
     # Tried in order when raw OCR is insufficient.
     # hint_strategy from StrategySelector is inserted at position 0.
@@ -115,20 +135,33 @@ class AdaptiveOCREngine:
 
         Args:
             image:          PIL Image (any mode; converted internally).
-            hint_strategy:  Optional strategy name from ImageQualityAnalyzer /
-                            OCRStrategySelector.  Used as a *priority hint*
-                            (placed first in the pipeline order) — it is never
-                            forced; if the raw result is already good, it is
-                            skipped entirely.
+            hint_strategy:  Optional strategy name from OCRStrategySelector.
+                            Used as a priority hint (placed first in the
+                            pipeline order) — never forced; skipped entirely
+                            if raw OCR is already good enough.
 
         Returns:
             OCRResult with the best text and full scoring metadata.
         """
-        t_start           = time.time()
+        t_start = time.time()
         strategies_tried: List[str] = []
 
         # ----------------------------------------------------------------
-        # Step 1 – Raw OCR
+        # Step 1 – Resolution ceiling check
+        # ----------------------------------------------------------------
+        w, h = image.size
+        hit_ceiling = (w * h) < self.LOW_RES_PIXEL_THRESHOLD
+
+        if hit_ceiling:
+            logger.info(
+                f"[AdaptiveOCR] source image {w}x{h} "
+                f"({w * h:,} px) < LOW_RES_PIXEL_THRESHOLD "
+                f"({self.LOW_RES_PIXEL_THRESHOLD:,} px) — "
+                f"resolution ceiling applies; lower composite score is expected"
+            )
+
+        # ----------------------------------------------------------------
+        # Step 2 – Raw OCR
         # ----------------------------------------------------------------
         raw_text, raw_conf = self._run_tesseract(image)
         raw_score = self.evaluator.score(raw_text, raw_conf, strategy="raw")
@@ -140,7 +173,7 @@ class AdaptiveOCREngine:
         )
 
         # ----------------------------------------------------------------
-        # Step 2 – Early exit
+        # Step 3 – Early exit: raw is already good enough
         # ----------------------------------------------------------------
         if raw_score.composite >= self.RAW_SKIP_THRESHOLD:
             elapsed = round(time.time() - t_start, 3)
@@ -155,18 +188,21 @@ class AdaptiveOCREngine:
                 strategies_tried=strategies_tried,
                 processing_time=elapsed,
                 skipped_preprocessing=True,
+                hit_resolution_ceiling=hit_ceiling,
+                stopped_early=False,
             )
 
         # ----------------------------------------------------------------
-        # Step 3 – Try preprocessing pipelines
+        # Step 4 – Try preprocessing pipelines
         # ----------------------------------------------------------------
         logger.info(
             f"[AdaptiveOCR] composite {raw_score.composite:.1f} "
             f"< {self.RAW_SKIP_THRESHOLD} → running preprocessing pipelines"
         )
 
-        pipelines  = self._build_pipeline_order(hint_strategy)
-        best_score = raw_score  # raw is the current best baseline
+        pipelines     = self._build_pipeline_order(hint_strategy)
+        best_score    = raw_score
+        stopped_early = False
 
         for strategy in pipelines:
             try:
@@ -187,6 +223,17 @@ class AdaptiveOCREngine:
                         f"(composite={score.composite:.1f})"
                     )
 
+                # Early exit: good enough — no point running more pipelines
+                if best_score.composite >= self.PIPELINE_GOOD_ENOUGH_THRESHOLD:
+                    remaining = [p for p in pipelines if p not in strategies_tried]
+                    stopped_early = True
+                    logger.info(
+                        f"[AdaptiveOCR] composite {best_score.composite:.1f} "
+                        f">= {self.PIPELINE_GOOD_ENOUGH_THRESHOLD} "
+                        f"→ stopping early, skipping {remaining}"
+                    )
+                    break
+
             except Exception as exc:
                 logger.warning(
                     f"[AdaptiveOCR] strategy {strategy!r} failed: {exc}"
@@ -194,13 +241,15 @@ class AdaptiveOCREngine:
                 continue
 
         # ----------------------------------------------------------------
-        # Step 4 – Quality gate
+        # Step 5 – Quality gate
         # ----------------------------------------------------------------
         if best_score.composite < self.MIN_ACCEPTABLE_SCORE:
+            ceiling_note = " (resolution ceiling — expected)" if hit_ceiling else ""
             logger.warning(
                 f"[AdaptiveOCR] best composite {best_score.composite:.1f} "
-                f"< {self.MIN_ACCEPTABLE_SCORE} — document may be too degraded "
-                f"for reliable OCR (winning strategy: {best_score.strategy!r})"
+                f"< {self.MIN_ACCEPTABLE_SCORE}{ceiling_note} — "
+                f"document may be too degraded for reliable OCR "
+                f"(winning strategy: {best_score.strategy!r})"
             )
 
         elapsed = round(time.time() - t_start, 3)
@@ -208,7 +257,9 @@ class AdaptiveOCREngine:
             f"[AdaptiveOCR] done in {elapsed}s — "
             f"winner={best_score.strategy!r}, "
             f"composite={best_score.composite:.1f}, "
-            f"tried={strategies_tried}"
+            f"tried={strategies_tried}, "
+            f"stopped_early={stopped_early}, "
+            f"hit_ceiling={hit_ceiling}"
         )
 
         return OCRResult(
@@ -217,6 +268,8 @@ class AdaptiveOCREngine:
             strategies_tried=strategies_tried,
             processing_time=elapsed,
             skipped_preprocessing=(best_score.strategy == "raw"),
+            hit_resolution_ceiling=hit_ceiling,
+            stopped_early=stopped_early,
         )
 
     # ------------------------------------------------------------------
@@ -227,8 +280,9 @@ class AdaptiveOCREngine:
         """
         Run Tesseract and return (text, average_confidence).
 
-        Confidence is the mean of per-word confidence values (ignoring -1
-        sentinel tokens that Tesseract emits for non-word segments).
+        Confidence is the mean of per-word confidence values.
+        Tesseract emits -1 for non-word segments; those are excluded.
+        Zero-confidence words are also excluded (below Tesseract threshold).
         """
         ocr_data = pytesseract.image_to_data(
             image,
@@ -242,7 +296,6 @@ class AdaptiveOCREngine:
             config=self.config,
         )
 
-        # Filter out -1 (no confidence) and 0 (below-threshold words)
         confs = [
             int(c) for c in ocr_data["conf"]
             if str(c).lstrip("-").isdigit() and int(c) >= 0
@@ -255,11 +308,11 @@ class AdaptiveOCREngine:
         """
         Return an ordered list of pipelines to try.
 
-        The hint (from ImageQualityAnalyzer) is placed first because it has
-        the highest prior probability of being correct.  If the hint is "raw"
-        or already in position 0, the default order is used unchanged.
+        The hint goes first (highest prior probability of being correct).
+        If hint is "raw" or not in FALLBACK_PIPELINES, the default order
+        is used unchanged.
         """
-        pipelines = list(self.FALLBACK_PIPELINES)  # make a mutable copy
+        pipelines = list(self.FALLBACK_PIPELINES)
 
         if hint and hint != "raw" and hint in pipelines:
             pipelines.remove(hint)
