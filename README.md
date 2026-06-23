@@ -1,49 +1,96 @@
-# Medical Report Assistant
+# 🩺 Medical Report Assistant
 
-An AI-powered web application designed to help patients understand their medical laboratory test results through secure digitization, clinical safety triage, and retrieval-augmented generation (RAG).
+An AI-powered medical report analysis system that helps users understand laboratory test results through Retrieval-Augmented Generation (RAG), clinical safety triage, and personalized AI-driven explanations.
 
----
+## Overview
 
-## 📚 Project Documentation
+Medical reports are often difficult for patients to interpret due to complex medical terminology and fragmented information.
 
-We have compiled a professional set of documentation covering the product requirements, system design, and API endpoints of the system. You can access these files in the `docs/` folder:
+Medical Report Assistant bridges this gap by allowing users to upload medical reports and receive clear, contextual explanations of test results, potential concerns, and recommended next steps while maintaining transparency through grounded retrieval.
 
-1.  **[Product Requirements Document (PRD_v1.md)](file:///d:/Medical_Assitance/docs/PRD_v1.md)**
-    *   Outlines the product vision, core target audience, user personas, functional specifications, safety triage tiers, and the future product roadmap.
-2.  **[Technical Design Document (TECH.md)](file:///d:/Medical_Assitance/docs/TECH.md)**
-    *   Detailing the technical stack (FastAPI, Next.js, ChromaDB, Hugging Face, Groq), system architecture flow diagram, detailed pipeline steps, database schema design, and step-by-step developer environment setup instructions.
-3.  **[API Reference Manual (API.md)](file:///d:/Medical_Assitance/docs/API.md)**
-    *   Providing full specifications for all backend endpoints (Auth, User Management, Health, and Analysis), including HTTP methods, paths, request headers/bodies, and example JSON responses.
+## Key Features
 
----
+* 📄 Medical report upload and processing
+* 🧠 AI-powered report explanation using LLMs
+* 🔍 Retrieval-Augmented Generation (RAG) pipeline
+* ⚠️ Clinical safety triage system
+* 📚 Grounded responses from trusted medical knowledge
+* 🔐 Secure user authentication and report management
+* 💬 Conversational health assistant experience
+* 🌐 Modern web interface built with Next.js
 
-## 🚀 Quick Start Guide
+## System Architecture
 
-### Backend Setup
-1.  **Configure environment:** Create a `.env` file in the root directory following the parameters described in `docs/TECH.md`.
-2.  **Install dependencies:**
-    ```bash
-    python -m venv .venv
-    # Activate virtual environment:
-    # Windows: .venv\Scripts\activate
-    # macOS/Linux: source .venv/bin/activate
-    pip install -r requirements.txt
-    ```
-3.  **Prepare the Vector Database:**
-    ```bash
-    python scripts/setup_knowledge_base.py --reset
-    ```
-4.  **Run the API:**
-    ```bash
-    uvicorn backend.api.main:app --reload
-    ```
+```text
+Medical Report
+       │
+       ▼
+ Document Processing
+       │
+       ▼
+ Information Extraction
+       │
+       ▼
+ Vector Database (ChromaDB)
+       │
+       ▼
+ Retrieval Pipeline
+       │
+       ▼
+ Large Language Model
+       │
+       ▼
+ Grounded Medical Explanation
+```
 
-### Frontend Setup
-1.  **Configure local settings:** Create a `frontend/.env.local` file setting `NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api/v1`.
-2.  **Run Development Server:**
-    ```bash
-    cd frontend
-    npm install
-    npm run dev
-    ```
-    Access the application at `http://localhost:3000`.
+## Tech Stack
+
+| Layer           | Technologies                       |
+| --------------- | ---------------------------------- |
+| Frontend        | Next.js, TypeScript                |
+| Backend         | FastAPI, Python                    |
+| AI/LLM          | Groq, Llama Models                 |
+| Embeddings      | Hugging Face Sentence Transformers |
+| Vector Database | ChromaDB                           |
+| Authentication  | JWT                                |
+| Deployment      | Vercel                             |
+
+## Documentation
+
+Detailed project documentation is available inside the `docs/` directory:
+
+* Product Requirements Document (PRD)
+* Technical Design Document
+* API Reference Documentation
+
+## Live Demo
+
+**Application:** https://medical-report-assistance.vercel.app
+
+## Future Improvements
+
+* Multi-language report analysis
+* Doctor-facing clinical dashboard
+* Longitudinal health tracking
+* Advanced multimodal medical report understanding
+* Personalized health recommendations
+
+## Local Setup
+
+### Backend
+
+```bash
+python -m venv .venv
+pip install -r requirements.txt
+python scripts/setup_knowledge_base.py --reset
+uvicorn backend.api.main:app --reload
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
