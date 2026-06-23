@@ -1,88 +1,124 @@
 # 🩺 Medical Report Assistant
 
-An AI-powered medical report analysis system that helps users understand laboratory test results through Retrieval-Augmented Generation (RAG), clinical safety triage, and personalized AI-driven explanations.
+An AI-powered medical report analysis system that helps users understand laboratory test results through Retrieval-Augmented Generation (RAG), clinical safety triage, and grounded AI explanations.
 
-## Overview
+## 🌐 Live Demo
 
-Medical reports are often difficult for patients to interpret due to complex medical terminology and fragmented information.
+**Application:** https://medical-report-assistance.vercel.app
 
-Medical Report Assistant bridges this gap by allowing users to upload medical reports and receive clear, contextual explanations of test results, potential concerns, and recommended next steps while maintaining transparency through grounded retrieval.
+## 🎥 Demo Video
 
-## Key Features
+[![Medical Report Assistant Demo](assets/demo-thumbnail.png)]([https://www.youtube.com/watch?v=YOUR_VIDEO_ID](https://youtu.be/BaKNcsBNP-g))
+
+---
+
+## 📸 Application Preview
+
+### Medical Report Analysis Dashboard
+
+![Medical Report Analysis](assets/report-analysis-dashboard.png)
+
+The system automatically analyzes uploaded medical reports, identifies abnormal and critical values, generates patient-friendly explanations, assigns urgency levels, and recommends appropriate next steps.
+
+---
+
+## 🚨 Problem Statement
+
+Medical laboratory reports often contain complex terminology, reference ranges, and clinical indicators that are difficult for patients to interpret.
+
+Patients frequently receive reports showing abnormal values but lack clear explanations regarding:
+
+* What the results mean
+* Which findings require attention
+* Potential health implications
+* Recommended next steps
+
+Medical Report Assistant bridges this gap by combining structured report analysis with Retrieval-Augmented Generation (RAG) to provide grounded and understandable explanations.
+
+---
+
+## ✨ Key Features
 
 * 📄 Medical report upload and processing
-* 🧠 AI-powered report explanation using LLMs
+* 🧠 AI-powered explanation of laboratory results
+* ⚠️ Clinical urgency classification (Normal, Moderate, High, Critical)
 * 🔍 Retrieval-Augmented Generation (RAG) pipeline
-* ⚠️ Clinical safety triage system
-* 📚 Grounded responses from trusted medical knowledge
-* 🔐 Secure user authentication and report management
-* 💬 Conversational health assistant experience
-* 🌐 Modern web interface built with Next.js
+* 📚 Grounded responses from curated medical knowledge
+* 💬 Interactive AI assistant for follow-up questions
+* 🔐 Secure authentication and report management
+* 🌐 Modern full-stack web application
 
-## System Architecture
+---
+
+## 🏗️ System Architecture
+
+![System Architecture](assets/system-architecture.png)
+
+### High-Level Pipeline
 
 ```text
 Medical Report
        │
        ▼
- Document Processing
+Document Processing
        │
        ▼
- Information Extraction
+Test Extraction & Validation
        │
        ▼
- Vector Database (ChromaDB)
+Clinical Safety Triage
        │
        ▼
- Retrieval Pipeline
+Knowledge Retrieval (RAG)
        │
        ▼
- Large Language Model
+Large Language Model
        │
        ▼
- Grounded Medical Explanation
+Grounded Medical Explanation
+       │
+       ▼
+Patient-Friendly Insights
 ```
 
-## Tech Stack
+---
 
-| Layer           | Technologies                       |
-| --------------- | ---------------------------------- |
-| Frontend        | Next.js, TypeScript                |
-| Backend         | FastAPI, Python                    |
-| AI/LLM          | Groq, Llama Models                 |
-| Embeddings      | Hugging Face Sentence Transformers |
-| Vector Database | ChromaDB                           |
-| Authentication  | JWT                                |
-| Deployment      | Vercel                             |
+## ⚙️ Tech Stack
 
-## Documentation
+| Layer           | Technologies          |
+| --------------- | --------------------- |
+| Frontend        | Next.js, TypeScript   |
+| Backend         | FastAPI, Python       |
+| AI Models       | Groq, Llama Models    |
+| Embeddings      | Sentence Transformers |
+| Vector Database | ChromaDB              |
+| Authentication  | JWT                   |
+| Deployment      | Vercel                |
 
-Detailed project documentation is available inside the `docs/` directory:
+---
 
-* Product Requirements Document (PRD)
-* Technical Design Document
-* API Reference Documentation
+## 📚 Documentation
 
-## Live Demo
+Comprehensive project documentation is available in the `docs/` directory.
 
-**Application:** https://medical-report-assistance.vercel.app
+| Document  | Description                       |
+| --------- | --------------------------------- |
+| PRD_v1.md | Product requirements and roadmap  |
+| TECH.md   | Technical design and architecture |
+| API.md    | API reference documentation       |
 
-## Future Improvements
+---
 
-* Multi-language report analysis
-* Doctor-facing clinical dashboard
-* Longitudinal health tracking
-* Advanced multimodal medical report understanding
-* Personalized health recommendations
-
-## Local Setup
+## 🚀 Local Setup
 
 ### Backend
 
 ```bash
 python -m venv .venv
 pip install -r requirements.txt
+
 python scripts/setup_knowledge_base.py --reset
+
 uvicorn backend.api.main:app --reload
 ```
 
@@ -90,7 +126,13 @@ uvicorn backend.api.main:app --reload
 
 ```bash
 cd frontend
+
 npm install
+
 npm run dev
 ```
 
+---
+
+
+Built by Dhruv Patil
