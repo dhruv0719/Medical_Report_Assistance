@@ -8,7 +8,7 @@ An AI-powered medical report analysis system that helps users understand laborat
 
 ## 🎥 Demo Video
 
-[![Medical Report Assistant Demo](assets/video-thumbnail.png)]([https://www.youtube.com/watch?v=YOUR_VIDEO_ID](https://youtu.be/BaKNcsBNP-g))
+[![Medical Report Assistant Demo](https://raw.githubusercontent.com/dhruv0719/Medical_Report_Assistance/main/assets/video-thumbnail.png)](https://youtu.be/BaKNcsBNP-g)
 
 ---
 
